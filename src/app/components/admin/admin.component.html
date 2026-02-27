@@ -1,0 +1,223 @@
+<div class="admin-page">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div class="header-left">
+      <h1>🛡️ Panel de Administración</h1>
+      <p class="subtitle">Bienvenido, <strong>&#64;{{ currentUser?.username }}</strong></p>
+    </div>
+  </div>
+
+  <!-- Stats dashboard -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-icon">👥</span>
+      <span class="stat-value">{{ users.length }}</span>
+      <span class="stat-label">Usuarios</span>
+    </div>
+    <div class="stat-card warn" (click)="switchTab('users')">
+      <span class="stat-icon">🚫</span>
+      <span class="stat-value">{{ blockedCount }}</span>
+      <span class="stat-label">Bloqueados</span>
+    </div>
+    <div class="stat-card accent" (click)="switchTab('users')">
+      <span class="stat-icon">🛡️</span>
+      <span class="stat-value">{{ adminCount }}</span>
+      <span class="stat-label">Admins</span>
+    </div>
+    <div class="stat-card danger" [class.pulse]="pendingReportsCount > 0" (click)="switchTab('reports')">
+      <span class="stat-icon">🚨</span>
+      <span class="stat-value">{{ pendingReportsCount }}</span>
+      <span class="stat-label">Reportes pendientes</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button [class.active]="activeTab === 'reports'" (click)="switchTab('reports')">
+      🚨 Reportes
+      <span class="badge-count" *ngIf="pendingReportsCount > 0">{{ pendingReportsCount }}</span>
+    </button>
+    <button [class.active]="activeTab === 'users'" (click)="switchTab('users')">👥 Usuarios</button>
+    <button [class.active]="activeTab === 'tweets'" (click)="switchTab('tweets')">🐦 Tweets</button>
+    <button [class.active]="activeTab === 'log'" (click)="switchTab('log')">📋 Historial</button>
+  </div>
+
+  <!-- Search bar (users y tweets) -->
+  <div class="search-bar" *ngIf="activeTab === 'users' || activeTab === 'tweets'">
+    <span class="search-icon">🔍</span>
+    <input type="text" [(ngModel)]="searchTerm" placeholder="Buscar..." />
+  </div>
+
+  <!-- Spinner -->
+  <div class="loading-row" *ngIf="loading">
+    <div class="spinner"></div> Cargando...
+  </div>
+
+  <!-- ══════════════ TAB: REPORTES ══════════════ -->
+  <div *ngIf="activeTab === 'reports' && !loading">
+
+    <div class="filter-row">
+      <label>Mostrar:</label>
+      <select [(ngModel)]="reportFilter" (change)="onReportFilterChange()">
+        <option value="pending">Solo pendientes</option>
+        <option value="all">Todos</option>
+      </select>
+    </div>
+
+    <div class="empty-state" *ngIf="reports.length === 0">
+      <span class="empty-icon">✅</span>
+      <p>No hay reportes pendientes</p>
+    </div>
+
+    <div class="report-card" *ngFor="let r of reports" [class.resolved]="r.status === 'resolved'" [class.dismissed]="r.status === 'dismissed'">
+      <div class="report-header">
+        <span class="reason-badge">{{ reasonLabel(r.reason) }}</span>
+        <span class="status-badge" [class.pending]="r.status === 'pending'" [class.resolved]="r.status === 'resolved'" [class.dismissed]="r.status === 'dismissed'">
+          {{ r.status === 'pending' ? '⏳ Pendiente' : r.status === 'resolved' ? '✅ Resuelto' : '🗂️ Desestimado' }}
+        </span>
+        <span class="report-time">{{ r.createdAt | timeAgo }}</span>
+      </div>
+
+      <div class="report-body">
+        <div class="report-tweet">
+          <p class="tweet-preview">"{{ r.tweetContent | slice:0:120 }}{{ r.tweetContent.length > 120 ? '...' : '' }}"</p>
+          <p class="tweet-author">— &#64;{{ r.tweetUsername }}</p>
+        </div>
+        <div class="report-meta">
+          <span>📢 Reportado por <strong>&#64;{{ r.reportedByUsername }}</strong></span>
+          <p class="report-details" *ngIf="r.details">"{{ r.details }}"</p>
+        </div>
+      </div>
+
+      <div class="report-actions" *ngIf="r.status === 'pending'">
+        <button class="btn-resolve" (click)="resolveReport(r)">
+          ⚖️ Eliminar tweet y resolver
+        </button>
+        <button class="btn-dismiss" (click)="dismissReport(r)">
+          🗂️ Desestimar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TAB: USUARIOS ══════════════ -->
+  <div *ngIf="activeTab === 'users' && !loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Tweets</th>
+          <th>Seguidores</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers" [class.blocked-row]="user.blocked">
+          <td>
+            <div class="user-cell">
+              <img [src]="user.avatarUrl" class="mini-avatar" />
+              <div>
+                <a [routerLink]="['/profile', user.username]" class="user-link">{{ user.displayName }}</a>
+                <br><small>&#64;{{ user.username }}</small>
+              </div>
+            </div>
+          </td>
+          <td><small>{{ user.email }}</small></td>
+          <td>
+            <span class="badge" [class.badge-admin]="user.role === 'admin'">
+              {{ user.role === 'admin' ? '🛡️ Admin' : '👤 User' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [class.badge-blocked]="user.blocked" [class.badge-ok]="!user.blocked">
+              {{ user.blocked ? '🚫 Bloqueado' : '✅ Activo' }}
+            </span>
+          </td>
+          <td>{{ user.tweetsCount || 0 }}</td>
+          <td>{{ user.followersCount || 0 }}</td>
+          <td class="actions-cell">
+            <button *ngIf="user.uid !== currentUser?.uid" class="btn-action"
+              [class.btn-unblock]="user.blocked" [class.btn-block]="!user.blocked"
+              (click)="toggleBlock(user)">
+              {{ user.blocked ? 'Desbloquear' : 'Bloquear' }}
+            </button>
+            <button *ngIf="user.uid !== currentUser?.uid" class="btn-action btn-role"
+              (click)="toggleAdmin(user)">
+              {{ user.role === 'admin' ? '→ User' : '→ Admin' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ TAB: TWEETS ══════════════ -->
+  <div *ngIf="activeTab === 'tweets' && !loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Autor</th>
+          <th>Contenido</th>
+          <th>Reportes</th>
+          <th>Likes</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let tweet of filteredTweets" [class.deleted-row]="tweet.deleted" [class.reported-row]="tweet.reportCount > 0 && !tweet.deleted">
+          <td>
+            <a [routerLink]="['/profile', tweet.username]" class="user-link">&#64;{{ tweet.username }}</a>
+          </td>
+          <td class="content-cell">
+            <span [class.strikethrough]="tweet.deleted">
+              {{ tweet.content | slice:0:80 }}{{ tweet.content.length > 80 ? '...' : '' }}
+            </span>
+          </td>
+          <td>
+            <span class="report-count" *ngIf="tweet.reportCount > 0">🚨 {{ tweet.reportCount }}</span>
+            <span class="no-reports" *ngIf="!tweet.reportCount">—</span>
+          </td>
+          <td>{{ tweet.likes?.length || 0 }}</td>
+          <td><small>{{ tweet.createdAt | timeAgo }}</small></td>
+          <td>
+            <span class="badge" [class.badge-blocked]="tweet.deleted" [class.badge-ok]="!tweet.deleted">
+              {{ tweet.deleted ? '🗑️ Eliminado' : '✅ Activo' }}
+            </span>
+          </td>
+          <td>
+            <button *ngIf="!tweet.deleted" class="btn-action btn-block" (click)="deleteThread(tweet)">
+              Eliminar hilo
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ TAB: HISTORIAL ══════════════ -->
+  <div *ngIf="activeTab === 'log' && !loading">
+
+    <div class="empty-state" *ngIf="adminLog.length === 0">
+      <span class="empty-icon">📋</span>
+      <p>No hay acciones registradas</p>
+    </div>
+
+    <div class="log-item" *ngFor="let entry of adminLog">
+      <div class="log-main">
+        <span class="log-action">{{ actionLabel(entry.action) }}</span>
+        <span class="log-desc">{{ entry.targetDescription }}</span>
+      </div>
+      <div class="log-meta">
+        <span class="log-admin">por <strong>&#64;{{ entry.adminUsername }}</strong></span>
+        <span class="log-time">{{ entry.createdAt | timeAgo }}</span>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,103 @@
+<div class="notif-page">
+
+    <!-- Header sticky -->
+    <div class="notif-header">
+      <h2>Notificaciones</h2>
+      <button class="btn-read-all" *ngIf="unreadCount > 0" (click)="markAllRead()" title="Marcar todas como leídas">
+        ✓ Todo leído
+      </button>
+    </div>
+  
+    <!-- Tabs -->
+    <div class="notif-tabs">
+      <button class="tab" [class.active]="activeTab === 'all'" (click)="activeTab = 'all'">
+        Todas
+        <span class="badge" *ngIf="notifications.length">{{ notifications.length }}</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'likes'" (click)="activeTab = 'likes'">
+        ❤️ Likes
+        <span class="badge" *ngIf="likesCount">{{ likesCount }}</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'posts'" (click)="activeTab = 'posts'">
+        📝 Posts nuevos
+        <span class="badge" *ngIf="postsCount">{{ postsCount }}</span>
+      </button>
+    </div>
+  
+    <!-- Loading -->
+    <div class="notif-loading" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+  
+    <!-- Empty -->
+    <div class="notif-empty" *ngIf="!loading && filtered.length === 0">
+      <span class="empty-icon">🔔</span>
+      <p *ngIf="activeTab === 'all'">No tienes notificaciones todavía</p>
+      <p *ngIf="activeTab === 'likes'">Nadie ha dado like a tus posts aún</p>
+      <p *ngIf="activeTab === 'posts'">No hay posts nuevos de usuarios que sigues</p>
+    </div>
+  
+    <!-- Lista de notificaciones -->
+    <div class="notif-list" *ngIf="!loading">
+      <div
+        *ngFor="let n of filtered"
+        class="notif-item"
+        [class.unread]="!n.read"
+        [class.like-type]="n.type === 'like'"
+        [class.post-type]="n.type === 'new_post'">
+  
+        <!-- Icono de tipo -->
+        <div class="notif-type-icon">
+          <span *ngIf="n.type === 'like'">❤️</span>
+          <span *ngIf="n.type === 'new_post'">✏️</span>
+        </div>
+  
+        <!-- Avatar -->
+        <img
+          class="notif-avatar"
+          [src]="n.fromAvatarUrl || 'assets/default-avatar.png'"
+          [alt]="n.fromDisplayName"
+          (click)="goToProfile(n.fromUsername)" />
+  
+        <!-- Contenido -->
+        <div class="notif-body" (click)="goToTweet(n)">
+  
+          <!-- LIKE -->
+          <ng-container *ngIf="n.type === 'like'">
+            <p class="notif-text">
+              <strong (click)="goToProfile(n.fromUsername); $event.stopPropagation()">
+                {{ n.fromDisplayName }}
+              </strong>
+              ha dado like a tu post
+            </p>
+            <p class="notif-preview" *ngIf="n.tweetContent">
+              "{{ n.tweetContent }}{{ (n.tweetContent?.length || 0) >= 100 ? '...' : '' }}"
+            </p>
+          </ng-container>
+  
+          <!-- NEW POST -->
+          <ng-container *ngIf="n.type === 'new_post'">
+            <p class="notif-text">
+              <span class="new-post-label">Post reciente de</span>
+              <strong (click)="goToProfile(n.fromUsername); $event.stopPropagation()">
+                {{ n.fromDisplayName }}
+              </strong>
+            </p>
+            <p class="notif-preview" *ngIf="n.tweetContent">
+              {{ n.tweetContent }}{{ (n.tweetContent?.length || 0) >= 120 ? '...' : '' }}
+            </p>
+            <!-- Miniatura si el post tiene imagen -->
+            <div class="notif-thumb" *ngIf="n.tweetImageUrl">
+              <img [src]="n.tweetImageUrl" alt="Imagen del post" />
+            </div>
+          </ng-container>
+  
+          <span class="notif-time">{{ getTimestamp(n) | timeAgo }}</span>
+        </div>
+  
+        <!-- Punto de no leída -->
+        <div class="unread-dot" *ngIf="!n.read"></div>
+      </div>
+    </div>
+  
+  </div>

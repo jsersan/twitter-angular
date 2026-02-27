@@ -1,0 +1,370 @@
+$bg: #15202b;
+$surface: #1e2d3d;
+$border: #38444d;
+$muted: #8899a6;
+$blue: #1da1f2;
+$red: #e0245e;
+$green: #17bf63;
+$orange: #f59e0b;
+
+.admin-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 0 60px;
+  border-left: 1px solid $border;
+  border-right: 1px solid $border;
+  min-height: 100vh;
+  background: $bg;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.admin-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid $border;
+  background: $bg;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  h1 { color: white; font-size: 1.3rem; margin: 0 0 4px; }
+  .subtitle { color: $muted; font-size: 0.85rem; margin: 0; }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: $border;
+  border-bottom: 1px solid $border;
+}
+
+.stat-card {
+  background: $bg;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  &:hover { background: rgba(255,255,255,0.03); }
+
+  .stat-icon { font-size: 1.3rem; }
+  .stat-value { color: white; font-size: 1.6rem; font-weight: 700; line-height: 1; }
+  .stat-label { color: $muted; font-size: 0.75rem; }
+
+  &.warn .stat-value { color: $orange; }
+  &.accent .stat-value { color: $blue; }
+  &.danger .stat-value { color: $red; }
+
+  &.pulse {
+    animation: pulse 2s infinite;
+    @keyframes pulse {
+      0%, 100% { background: $bg; }
+      50% { background: rgba($red, 0.08); }
+    }
+  }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid $border;
+  background: $bg;
+  position: sticky;
+  top: 73px;
+  z-index: 9;
+
+  button {
+    flex: 1;
+    padding: 14px 8px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: $muted;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    &:hover { background: rgba(255,255,255,0.03); color: white; }
+    &.active { color: $blue; border-bottom-color: $blue; }
+
+    .badge-count {
+      background: $red;
+      color: white;
+      font-size: 0.7rem;
+      padding: 1px 6px;
+      border-radius: 50px;
+      font-weight: 700;
+    }
+  }
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid $border;
+
+  .search-icon { color: $muted; }
+  input {
+    flex: 1;
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 50px;
+    padding: 8px 14px;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+    &::placeholder { color: #4a5568; }
+    &:focus { border-color: $blue; }
+  }
+}
+
+// ── Loading ───────────────────────────────────────────────────────────────────
+.loading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 32px;
+  color: $muted;
+  justify-content: center;
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid $border;
+    border-top-color: $blue;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+.empty-state {
+  padding: 60px 32px;
+  text-align: center;
+  .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+  p { color: $muted; font-size: 1rem; }
+}
+
+// ── Filter row ────────────────────────────────────────────────────────────────
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid $border;
+  label { color: $muted; font-size: 0.85rem; }
+  select {
+    background: $surface;
+    border: 1px solid $border;
+    border-radius: 6px;
+    color: white;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+  }
+}
+
+// ── Report cards ──────────────────────────────────────────────────────────────
+.report-card {
+  border-bottom: 1px solid $border;
+  padding: 16px;
+  transition: background 0.15s;
+  &:hover { background: rgba(255,255,255,0.02); }
+
+  &.resolved { opacity: 0.5; }
+  &.dismissed { opacity: 0.4; }
+
+  .report-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+
+    .reason-badge {
+      background: rgba($red, 0.15);
+      color: #ff6b8a;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-weight: 600;
+      border: 1px solid rgba($red, 0.3);
+    }
+    .status-badge {
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-weight: 600;
+      &.pending { background: rgba($orange, 0.15); color: $orange; border: 1px solid rgba($orange, 0.3); }
+      &.resolved { background: rgba($green, 0.15); color: $green; border: 1px solid rgba($green, 0.3); }
+      &.dismissed { background: rgba($muted, 0.15); color: $muted; border: 1px solid rgba($muted, 0.3); }
+    }
+    .report-time { color: $muted; font-size: 0.8rem; margin-left: auto; }
+  }
+
+  .report-body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    margin-bottom: 12px;
+
+    .report-tweet {
+      background: $surface;
+      border: 1px solid $border;
+      border-radius: 10px;
+      padding: 12px 14px;
+      .tweet-preview { color: #d9d9d9; font-size: 0.9rem; margin: 0 0 6px; line-height: 1.4; font-style: italic; }
+      .tweet-author { color: $muted; font-size: 0.82rem; margin: 0; }
+    }
+
+    .report-meta {
+      color: $muted;
+      font-size: 0.85rem;
+      min-width: 200px;
+      .report-details { color: #8899a6; font-style: italic; margin: 6px 0 0; font-size: 0.82rem; }
+    }
+  }
+
+  .report-actions {
+    display: flex;
+    gap: 10px;
+
+    .btn-resolve {
+      background: $red;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      &:hover { background: darken($red, 8%); }
+    }
+    .btn-dismiss {
+      background: transparent;
+      color: $muted;
+      border: 1px solid $border;
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      &:hover { background: rgba(255,255,255,0.05); color: white; }
+    }
+  }
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    color: $muted;
+    font-weight: 600;
+    border-bottom: 2px solid $border;
+    background: $bg;
+    position: sticky;
+    top: 117px;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid $border;
+    color: #d9d9d9;
+    vertical-align: middle;
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr.blocked-row td { opacity: 0.6; }
+  tr.deleted-row td { opacity: 0.45; }
+  tr.reported-row { background: rgba($red, 0.04); }
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  .mini-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+}
+
+.user-link { color: white; text-decoration: none; font-weight: 600; &:hover { text-decoration: underline; } }
+.content-cell { max-width: 280px; }
+.strikethrough { text-decoration: line-through; color: $muted; }
+
+.report-count { color: $red; font-weight: 700; }
+.no-reports { color: $muted; }
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  &.badge-admin { background: rgba($blue, 0.15); color: $blue; }
+  &.badge-ok { background: rgba($green, 0.15); color: $green; }
+  &.badge-blocked { background: rgba($red, 0.15); color: $red; }
+}
+
+.actions-cell { white-space: nowrap; }
+
+.btn-action {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  border-radius: 50px;
+  border: 1px solid $border;
+  cursor: pointer;
+  font-weight: 600;
+  background: transparent;
+  color: white;
+  margin-right: 4px;
+  transition: all 0.15s;
+
+  &.btn-block { border-color: $red; color: $red; &:hover { background: rgba($red, 0.12); } }
+  &.btn-unblock { border-color: $green; color: $green; &:hover { background: rgba($green, 0.12); } }
+  &.btn-role { border-color: $blue; color: $blue; &:hover { background: rgba($blue, 0.12); } }
+}
+
+// ── Audit log ─────────────────────────────────────────────────────────────────
+.log-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid $border;
+  gap: 16px;
+  transition: background 0.15s;
+  &:hover { background: rgba(255,255,255,0.02); }
+
+  .log-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .log-action { font-weight: 700; color: white; font-size: 0.9rem; white-space: nowrap; }
+    .log-desc { color: $muted; font-size: 0.85rem; }
+  }
+
+  .log-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    .log-admin { color: $muted; font-size: 0.82rem; }
+    .log-time { color: #4a5568; font-size: 0.8rem; white-space: nowrap; }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,81 @@
+// ═══════════════════════════════════════════════════════════════
+//  REGLAS DE SEGURIDAD FIRESTORE - Twitter Angular App
+//  Copiar en: Firebase Console → Firestore → Rules
+// ═══════════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Funciones auxiliares ─────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isNotBlocked() {
+      return isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.blocked == false;
+    }
+
+    // ─── Colección: users ─────────────────────────────────────────
+    match /users/{uid} {
+      // Cualquier usuario autenticado puede leer perfiles
+      allow read: if isAuthenticated();
+
+      // Solo el propio usuario puede crear su perfil (registro)
+      allow create: if isOwner(uid);
+
+      // El usuario puede editar su propio perfil; el admin puede editar cualquiera
+      allow update: if (isOwner(uid) && isNotBlocked()) || isAdmin();
+
+      // Solo admin puede eliminar usuarios
+      allow delete: if isAdmin();
+    }
+
+    // ─── Colección: usernames (mapa username→uid) ─────────────────
+    match /usernames/{username} {
+      allow read: if true;  // Público para verificar disponibilidad
+      allow create: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Colección: tweets ────────────────────────────────────────
+    match /tweets/{tweetId} {
+      // Cualquier usuario autenticado puede leer tweets no eliminados
+      allow read: if isAuthenticated();
+
+      // Solo usuarios activos (no bloqueados) pueden crear tweets
+      allow create: if isAuthenticated() && isNotBlocked() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // El autor puede editar/eliminar su tweet; el admin puede eliminar cualquiera
+      allow update: if isAuthenticated() && (
+        // El autor actualiza su propio tweet (likes, soft-delete)
+        resource.data.userId == request.auth.uid ||
+        // Cualquier usuario autenticado puede dar like
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])) ||
+        // Admin puede hacer soft-delete
+        isAdmin()
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── Colección: notifications ─────────────────────────────────
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && resource.data.toUserId == request.auth.uid;
+      allow create: if isAuthenticated() && isNotBlocked();
+      allow update: if isAuthenticated() && resource.data.toUserId == request.auth.uid;
+      allow delete: if isAuthenticated() && (resource.data.toUserId == request.auth.uid || isAdmin());
+    }
+  }
+}

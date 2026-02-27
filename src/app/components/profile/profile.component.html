@@ -1,0 +1,95 @@
+<div class="profile-page">
+  <div class="loading-full" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="not-found" *ngIf="!loading && !profileUser">
+    <p>Usuario no encontrado</p>
+    <a routerLink="/home">Volver al inicio</a>
+  </div>
+
+  <div *ngIf="!loading && profileUser">
+    <!-- Banner -->
+    <div class="profile-banner"></div>
+
+    <!-- Info -->
+    <div class="profile-info">
+      <div class="profile-header-row">
+
+        <!-- Avatar con botón de cambio (solo perfil propio) -->
+        <div class="avatar-container">
+          <img [src]="profileUser.avatarUrl" [alt]="profileUser.displayName" class="avatar-lg" />
+
+          <label *ngIf="isOwnProfile" class="avatar-upload-btn" title="Cambiar foto"
+            [class.uploading]="avatarUploading">
+            <span *ngIf="!avatarUploading">📷</span>
+            <span *ngIf="avatarUploading">{{ avatarProgress }}%</span>
+            <input type="file" accept="image/*" (change)="onAvatarSelected($event)"
+              [disabled]="avatarUploading" style="display:none" />
+          </label>
+        </div>
+
+        <div class="profile-actions">
+          <button *ngIf="isOwnProfile && !editMode" class="btn-edit" (click)="startEdit()">
+            Editar perfil
+          </button>
+          <button *ngIf="!isOwnProfile" class="btn-follow"
+            [class.following]="isFollowing" (click)="toggleFollow()">
+            {{ isFollowing ? 'Siguiendo' : 'Seguir' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Modo edición -->
+      <div class="edit-form" *ngIf="editMode">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="editDisplayName" />
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea [(ngModel)]="editBio" rows="3" maxlength="160"></textarea>
+        </div>
+        <div class="edit-actions">
+          <button (click)="editMode = false" class="btn-cancel">Cancelar</button>
+          <button (click)="saveEdit()" class="btn-save" [disabled]="saving">
+            {{ saving ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Datos del perfil -->
+      <div *ngIf="!editMode">
+        <h2>{{ profileUser.displayName }}
+          <span class="admin-badge" *ngIf="profileUser.role === 'admin'">🛡️ Admin</span>
+          <span class="blocked-badge" *ngIf="profileUser.blocked">🚫 Bloqueado</span>
+        </h2>
+        <p class="username">&#64;{{ profileUser.username }}</p>
+        <p class="bio" *ngIf="profileUser.bio">{{ profileUser.bio }}</p>
+        <p class="join-date">📅 Se unió {{ joinDate | date:'MMMM yyyy' }}</p>
+
+        <div class="follow-stats">
+          <span><strong>{{ profileUser.followingCount || 0 }}</strong> Siguiendo</span>
+          <span><strong>{{ profileUser.followersCount || 0 }}</strong> Seguidores</span>
+          <span><strong>{{ profileUser.tweetsCount || 0 }}</strong> Tweets</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tweets del usuario -->
+    <div class="profile-tweets">
+      <div class="tweets-header"><h3>Tweets</h3></div>
+
+      <div class="empty" *ngIf="tweets.length === 0">
+        <p>Este usuario aún no ha twitteado nada.</p>
+      </div>
+
+      <app-tweet-card
+        *ngFor="let tweet of tweets"
+        [tweet]="tweet"
+        [isAdmin]="currentUser?.role === 'admin'"
+        (deleted)="onTweetDeleted($event)">
+      </app-tweet-card>
+    </div>
+  </div>
+</div>

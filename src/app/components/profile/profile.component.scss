@@ -1,0 +1,98 @@
+.profile-page {
+  max-width: 600px;
+  margin: 0;
+  border-left: 1px solid #38444d;
+  border-right: 1px solid #38444d;
+  min-height: 100vh;
+
+  .loading-full, .not-found {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 80px 20px; gap: 16px; color: #8899a6;
+    .spinner { width: 32px; height: 32px; border: 3px solid #38444d; border-top-color: #1da1f2; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  }
+
+  .profile-banner {
+    height: 150px;
+    background: linear-gradient(135deg, #1da1f2, #0d47a1);
+  }
+
+  .profile-info {
+    padding: 16px;
+    border-bottom: 1px solid #38444d;
+
+    .profile-header-row {
+      display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;
+
+      // ── Avatar con overlay de upload ──────────────────────────────────────
+      .avatar-container {
+        position: relative;
+        display: inline-block;
+        margin-top: -40px;
+
+        .avatar-lg {
+          width: 80px; height: 80px; border-radius: 50%;
+          border: 4px solid #15202b; object-fit: cover; display: block;
+        }
+
+        .avatar-upload-btn {
+          position: absolute; inset: 0;
+          border-radius: 50%;
+          background: rgba(0,0,0,0); color: transparent;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; font-size: 1.3rem;
+          transition: all 0.2s;
+
+          &:hover, &.uploading {
+            background: rgba(0,0,0,0.55);
+            color: white;
+          }
+        }
+      }
+
+      .profile-actions {
+        .btn-edit, .btn-follow {
+          padding: 8px 18px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.15s;
+        }
+        .btn-edit { background: transparent; border: 1px solid #536471; color: white; &:hover { border-color: white; } }
+        .btn-follow {
+          background: #1da1f2; border: none; color: white; &:hover { background: #1a91da; }
+          &.following { background: transparent; border: 1px solid #536471; color: white; &:hover { border-color: #ef4444; color: #ef4444; } }
+        }
+      }
+    }
+
+    .edit-form {
+      .form-group {
+        margin-bottom: 12px;
+        label { display: block; color: #8899a6; font-size: 0.85rem; margin-bottom: 4px; }
+        input, textarea {
+          width: 100%; background: #253341; border: 1px solid #38444d; border-radius: 8px;
+          color: white; padding: 8px 12px; font-size: 0.95rem; box-sizing: border-box;
+          &:focus { border-color: #1da1f2; outline: none; } resize: vertical;
+        }
+      }
+      .edit-actions {
+        display: flex; gap: 8px; justify-content: flex-end;
+        .btn-cancel { background: transparent; border: 1px solid #536471; color: white; padding: 8px 16px; border-radius: 50px; cursor: pointer; }
+        .btn-save { background: #1da1f2; border: none; color: white; padding: 8px 16px; border-radius: 50px; font-weight: 700; cursor: pointer; &:disabled { opacity: 0.5; } }
+      }
+    }
+
+    h2 { color: white; font-size: 1.2rem; font-weight: 700; margin: 0 0 2px; display: flex; align-items: center; gap: 8px; .admin-badge { font-size: 0.85rem; } .blocked-badge { font-size: 0.85rem; color: #ef4444; } }
+    .username { color: #8899a6; font-size: 0.9rem; margin: 0 0 8px; }
+    .bio { color: #d9d9d9; font-size: 0.95rem; margin: 8px 0; }
+    .join-date { color: #8899a6; font-size: 0.85rem; margin: 4px 0 12px; }
+
+    .follow-stats {
+      display: flex; gap: 16px;
+      span { color: #8899a6; font-size: 0.9rem; strong { color: white; } }
+    }
+  }
+
+  .profile-tweets {
+    .tweets-header { padding: 16px; border-bottom: 1px solid #38444d; h3 { color: white; margin: 0; font-size: 1rem; font-weight: 700; } }
+    .empty { padding: 40px; text-align: center; color: #8899a6; }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -1,0 +1,35 @@
+/* ─────────────────────────────────────────────
+   ESTILOS GLOBALES - Twitter Angular App
+───────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #15202b;
+  color: #d9d9d9;
+  font-size: 15px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #15202b; }
+::-webkit-scrollbar-thumb { background: #38444d; border-radius: 3px; }
+
+/* Links */
+a { color: #1da1f2; text-decoration: none; }
+
+/* Animaciones */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Utilidades */
+.fade-in { animation: fadeIn 0.2s ease-out; }

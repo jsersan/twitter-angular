@@ -1,0 +1,112 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #15202b;
+  padding: 20px;
+}
+
+.auth-card {
+  background: #192734;
+  border: 1px solid #38444d;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+
+  .auth-logo {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .error-msg {
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #ef4444;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+  }
+
+  // ── Mensaje de éxito ──────────────────────────────────────────────────────
+  .success-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: rgba(23, 191, 99, 0.12);
+    border: 1px solid rgba(23, 191, 99, 0.35);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 8px 0 24px;
+    animation: fadeIn 0.3s ease;
+
+    .success-icon { font-size: 1.6rem; flex-shrink: 0; }
+
+    strong { color: #17bf63; font-size: 1rem; display: block; margin-bottom: 4px; }
+    p { color: #8899a6; font-size: 0.88rem; margin: 0; }
+    strong + p strong { color: #1da1f2; }
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+    label {
+      display: block;
+      color: #8899a6;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: #253341;
+      border: 1px solid #38444d;
+      border-radius: 8px;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+      &:focus { border-color: #1da1f2; }
+      &::placeholder { color: #4a5568; }
+    }
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: #1da1f2;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.15s;
+    &:hover:not(:disabled) { background: #1a91da; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  .auth-switch {
+    text-align: center;
+    color: #8899a6;
+    margin-top: 20px;
+    font-size: 0.9rem;
+    a { color: #1da1f2; text-decoration: none; &:hover { text-decoration: underline; } }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

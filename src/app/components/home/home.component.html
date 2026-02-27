@@ -1,0 +1,82 @@
+<div class="home-page">
+  <!-- Tweet Composer -->
+  <div class="composer-card">
+    <div class="composer-inner">
+      <img [src]="currentUser?.avatarUrl" [alt]="currentUser?.displayName" class="avatar-md" />
+      <div class="composer-form">
+
+        <div class="replying-to" *ngIf="replyingTo">
+          <span>Respondiendo a <strong>&#64;{{ replyingTo.username }}</strong></span>
+          <button (click)="cancelReply()" class="cancel-reply">✕</button>
+        </div>
+
+        <textarea
+          id="tweet-input"
+          [(ngModel)]="tweetContent"
+          (input)="onInput()"
+          [placeholder]="replyingTo ? 'Escribe tu respuesta...' : '¿Qué está pasando?'"
+          [maxlength]="maxChars"
+          rows="3">
+        </textarea>
+
+        <!-- Preview imagen seleccionada -->
+        <div class="image-preview" *ngIf="previewUrl">
+          <img [src]="previewUrl" alt="Preview" />
+          <button class="remove-img" (click)="removeImage()" title="Quitar imagen">✕</button>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="upload-bar" *ngIf="uploading">
+          <div class="upload-fill" [style.width.%]="uploadProgress"></div>
+          <span>Subiendo imagen... {{ uploadProgress }}%</span>
+        </div>
+
+        <div class="composer-footer">
+          <!-- Botón adjuntar imagen -->
+          <label class="btn-image" title="Adjuntar imagen" [class.has-image]="previewUrl">
+            📷
+            <input
+              type="file"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              [disabled]="uploading"
+              style="display:none" />
+          </label>
+
+          <span class="char-counter"
+            [class.warning]="charCount > 240"
+            [class.danger]="charCount > 270">
+            {{ maxChars - charCount }}
+          </span>
+
+          <button
+            class="btn-tweet"
+            (click)="postTweet()"
+            [disabled]="(!tweetContent.trim() && !selectedFile) || charCount > maxChars || posting">
+            {{ posting ? '⏳' : replyingTo ? 'Responder' : 'Tweetear' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feed -->
+  <div class="feed">
+    <div class="loading" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="empty-feed" *ngIf="!loading && tweets.length === 0">
+      <p>¡Tu timeline está vacío! Sigue a otros usuarios para ver sus tweets.</p>
+      <a routerLink="/explore" class="btn-explore">Explorar usuarios</a>
+    </div>
+
+    <app-tweet-card
+      *ngFor="let tweet of tweets; trackBy: trackById"
+      [tweet]="tweet"
+      [isAdmin]="currentUser?.role === 'admin'"
+      (deleted)="onTweetDeleted($event)"
+      (reply)="onReply($event)">
+    </app-tweet-card>
+  </div>
+</div>

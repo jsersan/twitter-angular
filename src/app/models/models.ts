@@ -1,3 +1,7 @@
+// =====================
+//  MODELOS DE DATOS
+// =====================
+
 export interface User {
   uid: string;
   email: string;
@@ -24,30 +28,52 @@ export interface Tweet {
   content: string;
   imageUrl?: string;
   likes: string[];
+  reposts: string[];
   replyTo?: string;
   replies?: Tweet[];
   deleted: boolean;
   deletedBy?: string;
   createdAt: Date;
-  reportCount?: number;
+
+  // ── Campos de repost ──────────────────────────────────────
+  isRepost?: boolean;
+  repostedByUserId?: string;
+  repostedByUsername?: string;
+  repostedByDisplayName?: string;
+  originalTweetId?: string;
+  originalUserId?: string;
+  originalUsername?: string;
+  originalDisplayName?: string;
+  originalAvatarUrl?: string;
+  originalContent?: string;
+  originalImageUrl?: string;
+  originalCreatedAt?: any;
 }
 
 export interface Notification {
   id?: string;
-  toUserId: string;           // quién la recibe
-  fromUserId: string;         // quién la genera
+  toUserId: string;
+  fromUserId: string;
   fromUsername: string;
-  fromDisplayName: string;
+  fromDisplayName?: string;
   fromAvatarUrl?: string;
-  type: 'like' | 'new_post';  // like en mi tweet | post nuevo de alguien que sigo
+  type: 'like' | 'new_post' | 'repost';
   tweetId?: string;
-  tweetContent?: string;      // preview del tweet
-  tweetImageUrl?: string;     // si el post nuevo tiene imagen
+  tweetContent?: string;
+  tweetImageUrl?: string;
   read: boolean;
   createdAt: Date;
 }
 
-export type ReportReason = 'spam' | 'hate_speech' | 'harassment' | 'misinformation' | 'inappropriate' | 'other';
+// ── Admin / Reportes ─────────────────────────────────────────────────────────
+
+export type ReportReason =
+  | 'spam'
+  | 'hate_speech'
+  | 'harassment'
+  | 'misinformation'
+  | 'violence'
+  | 'other';
 
 export interface Report {
   id?: string;
@@ -68,9 +94,12 @@ export interface AdminAction {
   id?: string;
   adminUid: string;
   adminUsername: string;
-  action: 'block' | 'unblock' | 'delete_tweet' | 'promote' | 'demote' | 'resolve_report' | 'dismiss_report';
-  targetType: 'user' | 'tweet' | 'report';
-  targetId: string;
-  targetDescription: string;
+  action: string;
+  targetType?: 'user' | 'tweet' | 'report';
+  targetId?: string;
+  targetDescription?: string;
+  targetUserId?: string;
+  targetTweetId?: string;
+  details?: string;
   createdAt: Date;
 }

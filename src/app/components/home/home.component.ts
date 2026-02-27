@@ -111,6 +111,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         content: this.tweetContent.trim(),
         imageUrl,
         likes: [],
+        reposts: [],
         replyTo: this.replyingTo?.id,
         deleted: false
       });

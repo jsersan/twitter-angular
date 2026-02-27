@@ -1,0 +1,96 @@
+<aside class="right-sidebar">
+
+    <!-- ── Búsqueda de tweets ────────────────────────────────────── -->
+    <div class="search-block">
+      <div class="search-box" [class.active]="searchQuery.length > 0">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchQuery"
+          (input)="onSearchInput()"
+          placeholder="Buscar tweets o usuarios..."
+          maxlength="100" />
+        <button class="clear-btn" *ngIf="searchQuery" (click)="clearSearch()" title="Limpiar">✕</button>
+      </div>
+  
+      <!-- Spinner buscando -->
+      <div class="search-loading" *ngIf="isSearching">
+        <div class="mini-spinner"></div>
+      </div>
+  
+      <!-- Resultados -->
+      <div class="search-results" *ngIf="hasSearched && !isSearching">
+  
+        <div class="results-header" *ngIf="searchResults.length > 0">
+          <span>{{ searchResults.length }} resultado{{ searchResults.length !== 1 ? 's' : '' }}</span>
+        </div>
+  
+        <!-- Sin resultados -->
+        <div class="no-results" *ngIf="searchResults.length === 0">
+          <span>😕</span>
+          <p>Sin resultados para <strong>"{{ searchQuery }}"</strong></p>
+        </div>
+  
+        <!-- Lista de resultados -->
+        <div
+          class="result-item"
+          *ngFor="let tweet of searchResults"
+          (click)="goToTweet(tweet)">
+          <img
+            class="result-avatar"
+            [src]="tweet.avatarUrl || 'assets/default-avatar.png'"
+            [alt]="tweet.displayName" />
+          <div class="result-body">
+            <div class="result-meta">
+              <span class="result-name" [innerHTML]="highlightMatch(tweet.displayName)"></span>
+              <span class="result-user" [innerHTML]="'@' + highlightMatch(tweet.username)"></span>
+            </div>
+            <p class="result-content"
+              *ngIf="tweet.content"
+              [innerHTML]="highlightMatch(tweet.content | slice:0:100) + (tweet.content.length > 100 ? '...' : '')">
+            </p>
+            <div class="result-img-thumb" *ngIf="tweet.imageUrl">
+              <img [src]="tweet.imageUrl" alt="imagen" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <!-- ── A quién seguir ─────────────────────────────────────────── -->
+    <div class="who-to-follow" *ngIf="suggestedUsers.length > 0 && !hasSearched">
+      <h3 class="section-title">A quién seguir</h3>
+  
+      <div
+        class="suggested-user"
+        *ngFor="let user of suggestedUsers"
+        (click)="goToProfile(user.username)">
+        <img
+          class="suggested-avatar"
+          [src]="user.avatarUrl || 'assets/default-avatar.png'"
+          [alt]="user.displayName" />
+        <div class="suggested-info">
+          <span class="suggested-name">{{ user.displayName }}</span>
+          <span class="suggested-username">&#64;{{ user.username }}</span>
+          <span class="suggested-followers">{{ user.followersCount || 0 }} seguidores</span>
+        </div>
+        <button
+          class="btn-follow"
+          [class.following]="isFollowing(user.uid)"
+          [class.loading]="followingInProgress.has(user.uid)"
+          (click)="followUser(user, $event)"
+          [disabled]="followingInProgress.has(user.uid)">
+          <span *ngIf="!followingInProgress.has(user.uid)">
+            {{ isFollowing(user.uid) ? 'Siguiendo' : 'Seguir' }}
+          </span>
+          <span *ngIf="followingInProgress.has(user.uid)" class="btn-spinner"></span>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Empty suggested -->
+    <div class="all-followed" *ngIf="suggestedUsers.length === 0 && !hasSearched && currentUser">
+      <p>🎉 ¡Ya sigues a todos los usuarios!</p>
+    </div>
+  
+  </aside>

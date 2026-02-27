@@ -1,0 +1,119 @@
+{
+    "indexes": [
+      {
+        "collectionGroup": "tweets",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "deleted",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "replyTo",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "createdAt",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "tweets",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "deleted",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "createdAt",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "tweets",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "replyTo",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "deleted",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "createdAt",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "tweets",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "deleted",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "createdAt",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "users",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "username",
+            "order": "ASCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "notifications",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "toUserId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "createdAt",
+            "order": "DESCENDING"
+          }
+        ]
+      },
+      {
+        "collectionGroup": "tweets",
+        "queryScope": "COLLECTION",
+        "fields": [
+          {
+            "fieldPath": "isRepost",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "repostedByUserId",
+            "order": "ASCENDING"
+          },
+          {
+            "fieldPath": "originalTweetId",
+            "order": "ASCENDING"
+          }
+        ]
+      }
+    ],
+    "fieldOverrides": []
+  }

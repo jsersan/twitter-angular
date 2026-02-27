@@ -178,3 +178,4 @@ src/
 - **Avatares**: Se usan avatares automáticos de [DiceBear](https://dicebear.com) basados en el username.
 - **Búsqueda**: La búsqueda de usuarios usa rangos de Firestore. Para búsqueda full-text avanzada, integra **Algolia** o **Typesense**.
 # tweeter-angular
+# twitter-angular

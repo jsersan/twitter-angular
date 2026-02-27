@@ -4,17 +4,14 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
-// Firebase
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
 import { environment } from '../environments/environment';
 
-// Routing
 import { AppRoutingModule } from './app-routing.module';
 
-// Components
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { LoginComponent } from './components/login/login.component';
@@ -26,11 +23,11 @@ import { AdminComponent } from './components/admin/admin.component';
 import { TweetCardComponent } from './components/tweet-card/tweet-card.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { NotificationsComponent } from './components/notifications/notifications.component';
+import { RightSidebarComponent } from './components/right-sidebar/right-sidebar.component';
+import { FollowersComponent } from './components/followers/followers.component';
 
-// Pipes
 import { TimeAgoPipe } from './pipes/time-ago.pipe';
 
-// Services
 import { ToastService } from './services/toast.service';
 import { ReportService } from './services/report.service';
 import { ImageUploadService } from './services/image-upload.service';
@@ -49,6 +46,8 @@ import { NotificationService } from './services/notification.service';
     TweetCardComponent,
     ToastComponent,
     NotificationsComponent,
+    RightSidebarComponent,
+    FollowersComponent,
     TimeAgoPipe
   ],
   imports: [

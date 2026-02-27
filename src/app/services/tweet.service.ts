@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import {
   Firestore, collection, collectionData, doc, addDoc, updateDoc,
-  query, where, orderBy, limit, getDocs, serverTimestamp,
+  deleteDoc, query, where, orderBy, limit, getDocs, serverTimestamp,
   arrayUnion, arrayRemove, getDoc
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Tweet } from '../models/models';
+import { Tweet, User } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class TweetService {
@@ -15,20 +15,17 @@ export class TweetService {
 
   // ─── Timeline propio + seguidos ──────────────────────────────────────────────
   getTimeline(followingIds: string[], currentUserId: string): Observable<Tweet[]> {
-    const ids = [...(followingIds || []), currentUserId].slice(0, 10);
+    const ids = [...followingIds, currentUserId].slice(0, 10);
     const tweetsRef = collection(this.firestore, 'tweets');
     const q = query(
       tweetsRef,
       where('userId', 'in', ids),
       where('deleted', '==', false),
-      where('replyTo', '==', null),   // Solo tweets raíz
+      where('replyTo', '==', null),
       orderBy('createdAt', 'desc'),
       limit(50)
     );
-    return (collectionData(q, { idField: 'id' }) as Observable<Tweet[]>).pipe(
-      // Doble filtro por si hay docs sin campo replyTo (tweets legacy)
-      map(tweets => tweets.filter(t => !t.replyTo))
-    );
+    return collectionData(q, { idField: 'id' }) as Observable<Tweet[]>;
   }
 
   // ─── Tweets de un usuario ────────────────────────────────────────────────────
@@ -41,9 +38,7 @@ export class TweetService {
       where('replyTo', '==', null),
       orderBy('createdAt', 'desc')
     );
-    return (collectionData(q, { idField: 'id' }) as Observable<Tweet[]>).pipe(
-      map(tweets => tweets.filter(t => !t.replyTo))
-    );
+    return collectionData(q, { idField: 'id' }) as Observable<Tweet[]>;
   }
 
   // ─── Respuestas de un tweet ──────────────────────────────────────────────────
@@ -65,20 +60,30 @@ export class TweetService {
     return collectionData(q, { idField: 'id' }) as Observable<Tweet[]>;
   }
 
+  // ─── Tweets recientes para búsqueda en sidebar ───────────────────────────────
+  getRecentTweets(maxItems = 200): Observable<Tweet[]> {
+    const q = query(
+      collection(this.firestore, 'tweets'),
+      where('deleted', '==', false),
+      orderBy('createdAt', 'desc'),
+      limit(maxItems)
+    );
+    return collectionData(q, { idField: 'id' }) as Observable<Tweet[]>;
+  }
+
   // ─── Publicar tweet ──────────────────────────────────────────────────────────
   async createTweet(tweet: Omit<Tweet, 'id' | 'createdAt'>): Promise<string> {
     const tweetsRef = collection(this.firestore, 'tweets');
     const docRef = await addDoc(tweetsRef, {
       ...tweet,
-      replyTo: tweet.replyTo || null,   // Siempre guardar null explícito
+      replyTo: tweet.replyTo || null,
+      reposts: tweet.reposts || [],
       createdAt: serverTimestamp()
     });
-    // Incrementar contador solo en tweets raíz
-    if (!tweet.replyTo) {
-      await updateDoc(doc(this.firestore, 'users', tweet.userId), {
-        tweetsCount: await this.incrementField('users', tweet.userId, 'tweetsCount')
-      });
-    }
+    // Incrementar contador sin bloquear (no lanza error si falla)
+    this.incrementField('users', tweet.userId, 'tweetsCount').then(count =>
+      updateDoc(doc(this.firestore, 'users', tweet.userId), { tweetsCount: count })
+    ).catch(() => {});
     return docRef.id;
   }
 
@@ -87,6 +92,56 @@ export class TweetService {
     const tweetRef = doc(this.firestore, 'tweets', tweetId);
     await updateDoc(tweetRef, {
       likes: liked ? arrayRemove(userId) : arrayUnion(userId)
+    });
+  }
+
+  // ─── Repostear ───────────────────────────────────────────────────────────────
+  async repostTweet(originalTweet: Tweet, reposter: User): Promise<string> {
+    const tweetsRef = collection(this.firestore, 'tweets');
+    const docRef = await addDoc(tweetsRef, {
+      userId: reposter.uid,
+      username: reposter.username,
+      displayName: reposter.displayName,
+      avatarUrl: reposter.avatarUrl || null,
+      content: originalTweet.content,
+      imageUrl: originalTweet.imageUrl || null,
+      likes: [],
+      reposts: [],
+      replyTo: null,
+      deleted: false,
+      isRepost: true,
+      repostedByUserId: reposter.uid,
+      repostedByUsername: reposter.username,
+      repostedByDisplayName: reposter.displayName,
+      originalTweetId: originalTweet.id,
+      originalUserId: originalTweet.userId,
+      originalUsername: originalTweet.username,
+      originalDisplayName: originalTweet.displayName,
+      originalAvatarUrl: originalTweet.avatarUrl || null,
+      originalContent: originalTweet.content,
+      originalImageUrl: originalTweet.imageUrl || null,
+      originalCreatedAt: originalTweet.createdAt,
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(this.firestore, 'tweets', originalTweet.id!), {
+      reposts: arrayUnion(reposter.uid)
+    });
+    return docRef.id;
+  }
+
+  // ─── Deshacer repost ─────────────────────────────────────────────────────────
+  async undoRepost(originalTweetId: string, reposterUid: string): Promise<void> {
+    const q = query(
+      collection(this.firestore, 'tweets'),
+      where('isRepost', '==', true),
+      where('repostedByUserId', '==', reposterUid),
+      where('originalTweetId', '==', originalTweetId)
+    );
+    const snap = await getDocs(q);
+    const deletions = snap.docs.map(d => deleteDoc(doc(this.firestore, 'tweets', d.id)));
+    await Promise.all(deletions);
+    await updateDoc(doc(this.firestore, 'tweets', originalTweetId), {
+      reposts: arrayRemove(reposterUid)
     });
   }
 
@@ -104,14 +159,13 @@ export class TweetService {
     const repliesSnap = await getDocs(
       query(collection(this.firestore, 'tweets'), where('replyTo', '==', tweetId))
     );
-    await Promise.all(
-      repliesSnap.docs.map(d =>
-        updateDoc(doc(this.firestore, 'tweets', d.id), { deleted: true, deletedBy: adminUid })
-      )
+    const promises = repliesSnap.docs.map(d =>
+      updateDoc(doc(this.firestore, 'tweets', d.id), { deleted: true, deletedBy: adminUid })
     );
+    await Promise.all(promises);
   }
 
-  // ─── Helper: incrementar campo ──────────────────────────────────────────────
+  // ─── Helper: incrementar campo ───────────────────────────────────────────────
   private async incrementField(col: string, docId: string, field: string): Promise<number> {
     const snap = await getDoc(doc(this.firestore, col, docId));
     const current = (snap.data() as any)?.[field] || 0;

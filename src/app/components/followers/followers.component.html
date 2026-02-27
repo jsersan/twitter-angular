@@ -1,0 +1,130 @@
+<div class="seguimiento-page">
+
+    <!-- Header -->
+    <div class="page-header">
+      <h2>Seguimiento</h2>
+    </div>
+  
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab === 'followers'" (click)="activeTab = 'followers'; searchTerm = ''">
+        Te siguen
+        <span class="tab-count" *ngIf="followers.length > 0">{{ followers.length }}</span>
+      </button>
+      <button class="tab" [class.active]="activeTab === 'following'" (click)="activeTab = 'following'; searchTerm = ''">
+        Sigues tú
+        <span class="tab-count" *ngIf="following.length > 0">{{ following.length }}</span>
+      </button>
+    </div>
+  
+    <!-- Filtro -->
+    <div class="search-bar" *ngIf="(activeTab === 'followers' ? followers : following).length > 0">
+      <span class="search-icon">🔍</span>
+      <input type="text" [(ngModel)]="searchTerm"
+        [placeholder]="activeTab === 'followers' ? 'Filtrar seguidores...' : 'Filtrar siguiendo...'"
+        maxlength="50" />
+      <button class="clear-btn" *ngIf="searchTerm" (click)="searchTerm = ''">✕</button>
+    </div>
+  
+    <!-- Loading -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+  
+    <!-- ── PESTAÑA: TE SIGUEN ───────────────────────────────────────────── -->
+    <ng-container *ngIf="!loading && activeTab === 'followers'">
+  
+      <div class="empty-state" *ngIf="followers.length === 0">
+        <span class="empty-icon">👥</span>
+        <p>Todavía nadie te sigue</p>
+        <small>Cuando alguien te siga, aparecerá aquí</small>
+      </div>
+  
+      <div class="empty-state" *ngIf="followers.length > 0 && filteredFollowers.length === 0">
+        <span class="empty-icon">🔍</span>
+        <p>Ningún seguidor coincide con "{{ searchTerm }}"</p>
+      </div>
+  
+      <div class="user-list">
+        <div class="user-row" *ngFor="let entry of filteredFollowers"
+          [class.in-progress]="entry.inProgress"
+          (click)="goToProfile(entry.user.username)">
+  
+          <img class="user-avatar"
+            [src]="entry.user.avatarUrl || 'assets/default-avatar.png'"
+            [alt]="entry.user.displayName" />
+  
+          <div class="user-info">
+            <div class="user-name-row">
+              <span class="user-name">{{ entry.user.displayName }}</span>
+              <span class="mutual-badge" *ngIf="isFollowingUser(entry.user.uid)">↔ Mutuo</span>
+            </div>
+            <span class="user-username">&#64;{{ entry.user.username }}</span>
+            <span class="user-bio" *ngIf="entry.user.bio">{{ entry.user.bio | slice:0:80 }}{{ (entry.user.bio?.length || 0) > 80 ? '...' : '' }}</span>
+            <span class="user-stats">{{ entry.user.followersCount || 0 }} seguidores</span>
+          </div>
+  
+          <div class="user-actions" (click)="$event.stopPropagation()">
+            <!-- Seguir de vuelta / Dejar de seguir -->
+            <button class="btn-follow" [class.following]="isFollowingUser(entry.user.uid)"
+              [disabled]="entry.inProgress"
+              (click)="toggleFollow(entry, $event)">
+              <span *ngIf="!entry.inProgress">{{ isFollowingUser(entry.user.uid) ? 'Siguiendo' : 'Seguir' }}</span>
+              <span *ngIf="entry.inProgress" class="mini-spinner"></span>
+            </button>
+            <!-- Eliminar seguidor -->
+            <button class="btn-remove" [disabled]="entry.inProgress"
+              (click)="removeFollower(entry, $event)" title="Eliminar seguidor">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  
+    <!-- ── PESTAÑA: SIGUES TÚ ──────────────────────────────────────────── -->
+    <ng-container *ngIf="!loading && activeTab === 'following'">
+  
+      <div class="empty-state" *ngIf="following.length === 0">
+        <span class="empty-icon">🔭</span>
+        <p>No sigues a nadie todavía</p>
+        <small>Explora la app y empieza a seguir personas</small>
+      </div>
+  
+      <div class="empty-state" *ngIf="following.length > 0 && filteredFollowing.length === 0">
+        <span class="empty-icon">🔍</span>
+        <p>Nadie coincide con "{{ searchTerm }}"</p>
+      </div>
+  
+      <div class="user-list">
+        <div class="user-row" *ngFor="let entry of filteredFollowing"
+          [class.in-progress]="entry.inProgress"
+          (click)="goToProfile(entry.user.username)">
+  
+          <img class="user-avatar"
+            [src]="entry.user.avatarUrl || 'assets/default-avatar.png'"
+            [alt]="entry.user.displayName" />
+  
+          <div class="user-info">
+            <div class="user-name-row">
+              <span class="user-name">{{ entry.user.displayName }}</span>
+              <!-- Si también nos sigue a nosotros -->
+              <span class="mutual-badge" *ngIf="entry.user.following?.includes(currentUser?.uid || '')">↔ Mutuo</span>
+            </div>
+            <span class="user-username">&#64;{{ entry.user.username }}</span>
+            <span class="user-bio" *ngIf="entry.user.bio">{{ entry.user.bio | slice:0:80 }}{{ (entry.user.bio?.length || 0) > 80 ? '...' : '' }}</span>
+            <span class="user-stats">{{ entry.user.followersCount || 0 }} seguidores</span>
+          </div>
+  
+          <div class="user-actions" (click)="$event.stopPropagation()">
+            <button class="btn-follow following" [disabled]="entry.inProgress"
+              (click)="unfollowUser(entry, $event)">
+              <span *ngIf="!entry.inProgress">Siguiendo</span>
+              <span *ngIf="entry.inProgress" class="mini-spinner"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  
+  </div>

@@ -1,0 +1,164 @@
+$border: #38444d;
+$muted: #8899a6;
+$blue: #1da1f2;
+$red: #e0245e;
+$green: #17bf63;
+
+.seguimiento-page {
+  max-width: 600px;
+  border-left: 1px solid $border;
+  border-right: 1px solid $border;
+  min-height: 100vh;
+}
+
+// ── Header ──────────────────────────────────────────────────────────────────
+.page-header {
+  padding: 16px 20px 0;
+  h2 { color: white; font-size: 1.15rem; font-weight: 700; margin: 0; }
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+.tabs {
+  display: flex;
+  border-bottom: 1px solid $border;
+  margin-top: 4px;
+
+  .tab {
+    flex: 1;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: $muted; font-size: 0.95rem; font-weight: 600;
+    padding: 14px 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: color 0.15s, border-color 0.15s;
+
+    &:hover { color: white; background: rgba(255,255,255,0.03); }
+
+    &.active {
+      color: white;
+      border-bottom-color: $blue;
+    }
+
+    .tab-count {
+      background: rgba($blue, 0.15); color: $blue;
+      font-size: 0.75rem; font-weight: 700;
+      padding: 1px 8px; border-radius: 50px;
+    }
+  }
+}
+
+// ── Filtro ───────────────────────────────────────────────────────────────────
+.search-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-bottom: 1px solid $border; color: $muted;
+
+  .search-icon { flex-shrink: 0; }
+  input {
+    flex: 1; background: none; border: none; outline: none;
+    color: white; font-size: 0.9rem;
+    &::placeholder { color: #4a5568; }
+  }
+  .clear-btn {
+    background: none; border: none; color: $muted; cursor: pointer;
+    padding: 2px 6px; border-radius: 50%;
+    &:hover { background: rgba(255,255,255,0.1); color: white; }
+  }
+}
+
+// ── Estados ──────────────────────────────────────────────────────────────────
+.loading-state {
+  display: flex; justify-content: center; padding: 60px;
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid $border; border-top-color: $blue;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+}
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 70px 24px; color: $muted; text-align: center; gap: 8px;
+  .empty-icon { font-size: 2.5rem; opacity: 0.5; }
+  p { font-size: 0.95rem; color: #d9d9d9; margin: 0; }
+  small { font-size: 0.85rem; }
+}
+
+// ── Lista ─────────────────────────────────────────────────────────────────────
+.user-list { display: flex; flex-direction: column; }
+
+.user-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba($border, 0.5);
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.25s;
+
+  &:hover { background: rgba(255,255,255,0.03); }
+  &.in-progress { opacity: 0.4; pointer-events: none; }
+
+  .user-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  }
+
+  .user-info {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 2px;
+
+    .user-name-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .user-name {
+      color: white; font-weight: 700; font-size: 0.95rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mutual-badge {
+      background: rgba($green, 0.15); color: $green;
+      padding: 1px 7px; border-radius: 50px;
+      font-size: 0.72rem; font-weight: 600; flex-shrink: 0;
+    }
+    .user-username { color: $muted; font-size: 0.85rem; }
+    .user-bio {
+      color: #c0ccd5; font-size: 0.82rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .user-stats { color: $muted; font-size: 0.78rem; margin-top: 1px; }
+  }
+
+  .user-actions {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+
+    .btn-follow {
+      padding: 6px 14px; border-radius: 50px;
+      font-size: 0.82rem; font-weight: 700; cursor: pointer;
+      background: white; color: #0f1419; border: none;
+      white-space: nowrap; transition: all 0.15s;
+      min-width: 80px; display: flex; align-items: center; justify-content: center;
+
+      &:hover:not(.following):not(:disabled) { background: #e7e7e7; }
+      &.following {
+        background: transparent; border: 1px solid $border; color: white;
+        &:hover:not(:disabled) { border-color: $red; color: $red; }
+      }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    .btn-remove {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: transparent; border: 1px solid rgba($border, 0.7);
+      color: $muted; cursor: pointer; font-size: 0.75rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+
+      &:hover:not(:disabled) { background: rgba($red, 0.12); border-color: $red; color: $red; }
+      &:disabled { opacity: 0.35; cursor: not-allowed; }
+    }
+
+    .mini-spinner {
+      display: inline-block; width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,0.2); border-top-color: currentColor;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

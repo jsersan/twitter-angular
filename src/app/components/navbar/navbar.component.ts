@@ -12,6 +12,7 @@ import { User } from '../../models/models';
 export class NavbarComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   unreadCount = 0;
+  followersCount = 0;
 
   private userSub!: Subscription;
   private notifSub!: Subscription;
@@ -24,6 +25,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userSub = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+      this.followersCount = user?.followers?.length || 0;
       this.notifSub?.unsubscribe();
       if (user) {
         this.notifSub = this.notifService.getUnreadCount(user.uid).subscribe(count => {
@@ -31,6 +33,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         });
       } else {
         this.unreadCount = 0;
+        this.followersCount = 0;
       }
     });
   }

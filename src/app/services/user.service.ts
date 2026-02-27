@@ -32,50 +32,48 @@ export class UserService {
     const termLower = term.toLowerCase();
     const termUpper = termLower + '\uf8ff';
 
-    // Consulta 1: por username (siempre en minúsculas)
     const byUsername$ = collectionData(
-      query(
-        usersRef,
-        where('username', '>=', termLower),
-        where('username', '<=', termUpper),
-        orderBy('username')
-      ),
+      query(usersRef, where('username', '>=', termLower), where('username', '<=', termUpper), orderBy('username')),
       { idField: 'uid' }
     ) as Observable<User[]>;
 
-    // Consulta 2: por displayName (respeta mayúsculas — buscamos con el término tal cual)
     const byDisplayName$ = collectionData(
-      query(
-        usersRef,
-        where('displayName', '>=', term),
-        where('displayName', '<=', term + '\uf8ff'),
-        orderBy('displayName')
-      ),
+      query(usersRef, where('displayName', '>=', term), where('displayName', '<=', term + '\uf8ff'), orderBy('displayName')),
       { idField: 'uid' }
     ) as Observable<User[]>;
 
-    // Combinar y deduplicar por uid
     return combineLatest([byUsername$, byDisplayName$]).pipe(
       map(([byUser, byDisplay]) => {
         const seen = new Set<string>();
         const merged: User[] = [];
         for (const u of [...byUser, ...byDisplay]) {
-          if (!seen.has(u.uid)) {
-            seen.add(u.uid);
-            merged.push(u);
-          }
+          if (!seen.has(u.uid)) { seen.add(u.uid); merged.push(u); }
         }
         return merged;
       })
     );
   }
 
-  // ─── Listar todos los usuarios (admin) ──────────────────────────────────────
+  // ─── Listar todos los usuarios ───────────────────────────────────────────────
   getAllUsers(): Observable<User[]> {
     return collectionData(
       query(collection(this.firestore, 'users'), orderBy('createdAt', 'desc')),
       { idField: 'uid' }
     ) as Observable<User[]>;
+  }
+
+  // ─── Obtener varios usuarios por UIDs (tiempo real) ─────────────────────────
+  getUsersByUids(uids: string[]): Observable<User[]> {
+    if (!uids.length) return new Observable(o => { o.next([]); o.complete(); });
+    const chunks = this.chunkArray(uids, 30);
+    const obs = chunks.map(chunk =>
+      collectionData(
+        query(collection(this.firestore, 'users'), where('uid', 'in', chunk)),
+        { idField: 'uid' }
+      ) as Observable<User[]>
+    );
+    if (obs.length === 1) return obs[0];
+    return combineLatest(obs).pipe(map((results: User[][]) => results.flat()));
   }
 
   // ─── Seguir usuario ──────────────────────────────────────────────────────────
@@ -102,6 +100,20 @@ export class UserService {
       updateDoc(doc(this.firestore, 'users', targetUid), {
         followers: arrayRemove(currentUid),
         followersCount: increment(-1)
+      })
+    ]);
+  }
+
+  // ─── Eliminar seguidor ───────────────────────────────────────────────────────
+  async removeFollower(currentUid: string, followerUid: string): Promise<void> {
+    await Promise.all([
+      updateDoc(doc(this.firestore, 'users', currentUid), {
+        followers: arrayRemove(followerUid),
+        followersCount: increment(-1)
+      }),
+      updateDoc(doc(this.firestore, 'users', followerUid), {
+        following: arrayRemove(currentUid),
+        followingCount: increment(-1)
       })
     ]);
   }

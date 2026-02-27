@@ -1,138 +1,68 @@
-<div class="tweet-card" [class.is-reply]="isReply">
+<div class="tweet-card" [class.reply]="tweet.replyTo" [class.is-repost]="tweet.isRepost">
 
-  <div class="tweet-row">
-    <div class="left-col">
-      <div class="avatar-wrap" (click)="goToProfile()">
-        <img [src]="tweet.avatarUrl || 'assets/default-avatar.png'" [alt]="tweet.displayName" />
-      </div>
-      <div class="thread-line" *ngIf="showReplies"></div>
+  <!-- ── Cabecera "X reposteó" ─────────────────────────────────────── -->
+  <div class="repost-header" *ngIf="tweet.isRepost" (click)="goToProfile(tweet.repostedByUsername)">
+    <span class="repost-icon">🔁</span>
+    <span>{{ tweet.repostedByDisplayName }} reposteó</span>
+  </div>
+
+  <div class="tweet-inner">
+    <!-- Avatar del autor ORIGINAL -->
+    <div class="tweet-avatar" (click)="goToProfile(tweet.isRepost ? tweet.originalUsername : tweet.username)">
+      <img [src]="(tweet.isRepost ? tweet.originalAvatarUrl : tweet.avatarUrl) || 'assets/default-avatar.png'"
+           [alt]="tweet.isRepost ? tweet.originalDisplayName : tweet.displayName" />
     </div>
-    <div class="right-col">
+
+    <div class="tweet-body">
       <div class="tweet-header">
-        <span class="display-name" (click)="goToProfile()">{{ tweet.displayName }}</span>
-        <span class="username" (click)="goToProfile()">&#64;{{ tweet.username }}</span>
-        <span class="dot">·</span>
-        <span class="time">{{ tweet.createdAt | timeAgo }}</span>
-        <div class="header-actions">
-          <button *ngIf="canDelete()" class="btn-delete" (click)="deleteThisThread()" title="Eliminar">🗑️</button>
-          <button *ngIf="currentUser && currentUser.uid !== tweet.userId" class="btn-report" (click)="openReportModal()" title="Reportar">⚑</button>
+        <!-- Nombre del autor ORIGINAL -->
+        <span class="display-name" (click)="goToProfile(tweet.isRepost ? tweet.originalUsername : tweet.username)">
+          {{ tweet.isRepost ? tweet.originalDisplayName : tweet.displayName }}
+        </span>
+        <span class="username" (click)="goToProfile(tweet.isRepost ? tweet.originalUsername : tweet.username)">
+          &#64;{{ tweet.isRepost ? tweet.originalUsername : tweet.username }}
+        </span>
+        <span class="separator">·</span>
+        <span class="time">{{ (tweet.isRepost ? tweet.originalCreatedAt : tweet.createdAt) | timeAgo }}</span>
+
+        <div class="tweet-actions-menu" *ngIf="canDelete()">
+          <button class="btn-delete" (click)="deleteThisThread()" title="Eliminar">🗑️</button>
         </div>
       </div>
 
       <div class="tweet-content">
-        <p *ngIf="tweet.content">{{ tweet.content }}</p>
-        <!-- Imagen del tweet -->
-        <div class="tweet-image" *ngIf="tweet.imageUrl">
-          <img [src]="tweet.imageUrl" alt="Imagen del tweet" (click)="openImage(tweet.imageUrl)" />
+        <p>{{ tweet.isRepost ? tweet.originalContent : tweet.content }}</p>
+        <div class="tweet-image" *ngIf="tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl">
+          <img [src]="tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl" alt="imagen del tweet" />
         </div>
       </div>
 
-      <div class="tweet-actions">
-        <button class="action-btn" (click)="toggleReplies()">
-          💬 <span *ngIf="replyCount > 0">{{ replyCount }}</span>
+      <div class="tweet-footer">
+        <!-- Responder -->
+        <button class="action-btn reply-btn" (click)="emitReply()" title="Responder">
+          <span class="icon">💬</span>
         </button>
-        <button class="action-btn" [class.liked]="isLiked" (click)="toggleLike()">
-          {{ isLiked ? '❤️' : '🤍' }}
-          <span *ngIf="likesCount > 0">{{ likesCount }}</span>
+
+        <!-- Repostear (solo en tweets raíz, no en reposts de reposts) -->
+        <button
+          class="action-btn repost-btn"
+          [class.reposted]="isReposted"
+          [class.loading]="reposting"
+          (click)="toggleRepost()"
+          [disabled]="reposting || tweet.isRepost"
+          [title]="tweet.isRepost ? 'No se puede re-repostear' : (isReposted ? 'Deshacer repost' : 'Repostear')"
+          *ngIf="!tweet.replyTo">
+          <span class="icon" *ngIf="!reposting">🔁</span>
+          <span class="mini-spinner" *ngIf="reposting"></span>
+          <span class="count" *ngIf="repostsCount > 0">{{ repostsCount }}</span>
         </button>
-        <span class="report-indicator" *ngIf="(tweet?.reportCount || 0) > 0 && isAdmin" title="Tiene reportes">
-          🚨 {{ tweet.reportCount }}
-        </span>
-      </div>
-    </div>
-  </div>
 
-  <!-- Zona de respuestas -->
-  <div class="replies-zone" *ngIf="showReplies">
-    <div class="loading-replies" *ngIf="loadingReplies"><div class="spinner-sm"></div></div>
-    <div class="empty-replies" *ngIf="!loadingReplies && replies.length === 0">Sé el primero en responder</div>
-
-    <div class="reply-row" *ngFor="let r of replies; let last = last">
-      <div class="left-col">
-        <div class="avatar-wrap small" (click)="navigateToProfile(r.username)">
-          <img [src]="r.avatarUrl || 'assets/default-avatar.png'" [alt]="r.displayName" />
-        </div>
-        <div class="thread-line" *ngIf="!last || currentUser"></div>
-      </div>
-      <div class="right-col">
-        <div class="tweet-header">
-          <span class="display-name" (click)="navigateToProfile(r.username)">{{ r.displayName }}</span>
-          <span class="username">&#64;{{ r.username }}</span>
-          <span class="dot">·</span>
-          <span class="time">{{ r.createdAt | timeAgo }}</span>
-          <div class="header-actions">
-            <button *ngIf="canDeleteReply(r)" class="btn-delete" (click)="deleteReply(r)">🗑️</button>
-          </div>
-        </div>
-        <div class="tweet-content">
-          <p>{{ r.content }}</p>
-          <div class="tweet-image" *ngIf="r.imageUrl">
-            <img [src]="r.imageUrl" alt="Imagen" (click)="openImage(r.imageUrl)" />
-          </div>
-        </div>
-        <div class="tweet-actions">
-          <button class="action-btn" [class.liked]="isReplyLiked(r)" (click)="toggleReplyLike(r)">
-            {{ isReplyLiked(r) ? '❤️' : '🤍' }}
-            <span *ngIf="r.likes?.length > 0">{{ r.likes.length }}</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Compositor de respuesta -->
-    <div class="reply-composer" *ngIf="currentUser">
-      <div class="left-col">
-        <div class="avatar-wrap small"><img [src]="currentUser.avatarUrl" [alt]="currentUser.displayName" /></div>
-      </div>
-      <div class="right-col">
-        <p class="replying-label">Respondiendo a <span class="mention">&#64;{{ tweet.username }}</span></p>
-        <textarea [(ngModel)]="replyText" placeholder="Escribe tu respuesta..." rows="2" maxlength="280"></textarea>
-        <div class="composer-footer">
-          <span class="char-count" [class.warn]="replyText.length > 240">{{ 280 - replyText.length }}</span>
-          <button class="btn-send" (click)="postReply()" [disabled]="!replyText.trim() || postingReply">
-            {{ postingReply ? '...' : 'Responder' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de reporte -->
-  <div class="report-modal-overlay" *ngIf="showReportModal" (click)="closeReportModal()">
-    <div class="report-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>⚑ Reportar tweet</h3>
-        <button class="modal-close" (click)="closeReportModal()">✕</button>
-      </div>
-      <p class="modal-subtitle">¿Por qué reportas este tweet de <strong>&#64;{{ tweet.username }}</strong>?</p>
-
-      <div class="reason-list">
-        <label *ngFor="let opt of reportOptions" class="reason-opt" [class.selected]="selectedReason === opt.value">
-          <input type="radio" [(ngModel)]="selectedReason" [value]="opt.value" />
-          <span class="opt-icon">{{ opt.icon }}</span>
-          <span class="opt-label">{{ opt.label }}</span>
-        </label>
-      </div>
-
-      <textarea *ngIf="selectedReason === 'other'" [(ngModel)]="reportDetails"
-        placeholder="Describe el problema..." rows="3" maxlength="200" class="details-input">
-      </textarea>
-
-      <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeReportModal()">Cancelar</button>
-        <button class="btn-submit-report" (click)="submitReport()" [disabled]="!selectedReason || submittingReport">
-          {{ submittingReport ? 'Enviando...' : 'Enviar reporte' }}
+        <!-- Like -->
+        <button class="action-btn like-btn" [class.liked]="isLiked" (click)="toggleLike()">
+          <span class="icon">{{ isLiked ? '❤️' : '🤍' }}</span>
+          <span class="count" *ngIf="likesCount > 0">{{ likesCount }}</span>
         </button>
       </div>
-
-      <p class="report-sent" *ngIf="reportSent">✅ Reporte enviado. Nuestro equipo lo revisará.</p>
     </div>
   </div>
-
-  <!-- Lightbox -->
-  <div class="lightbox" *ngIf="lightboxUrl" (click)="lightboxUrl = null">
-    <img [src]="lightboxUrl" alt="Imagen ampliada" (click)="$event.stopPropagation()" />
-    <button class="lightbox-close" (click)="lightboxUrl = null">✕</button>
-  </div>
-
 </div>

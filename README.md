@@ -177,5 +177,3 @@ src/
 - **Límite de timeline**: Firestore `in` operator admite máx. 10 IDs. Si un usuario sigue a más de 9 personas, el timeline mostrará solo los primeros 9 + el propio usuario. Para escalabilidad real, se recomienda un **feed denormalizado** (duplicar tweets en una subcolección por seguidor).
 - **Avatares**: Se usan avatares automáticos de [DiceBear](https://dicebear.com) basados en el username.
 - **Búsqueda**: La búsqueda de usuarios usa rangos de Firestore. Para búsqueda full-text avanzada, integra **Algolia** o **Typesense**.
-# tweeter-angular
-# twitter-angular

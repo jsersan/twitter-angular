@@ -26,11 +26,12 @@ export interface Tweet {
   displayName: string;
   avatarUrl?: string;
   content: string;
-  imageUrl?: string;
+  imageUrl?: string | null;
   likes: string[];
   reposts: string[];
-  replyTo?: string;
+  replyTo?: string | null;
   replies?: Tweet[];
+  replyCount?: number;
   deleted: boolean;
   deletedBy?: string;
   createdAt: Date;

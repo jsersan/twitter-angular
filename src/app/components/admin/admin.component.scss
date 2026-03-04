@@ -8,8 +8,9 @@ $green: #17bf63;
 $orange: #f59e0b;
 
 .admin-page {
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
   padding: 0 0 60px;
   border-left: 1px solid $border;
   border-right: 1px solid $border;
@@ -266,40 +267,53 @@ $orange: #f59e0b;
   }
 }
 
-// ── Table ─────────────────────────────────────────────────────────────────────
+// ── Table mejorada ──────────────────────────────────────────────
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 
   th {
-    padding: 10px 12px;
+    padding: 12px 16px;
     text-align: left;
     color: $muted;
     font-weight: 600;
     border-bottom: 2px solid $border;
     background: $bg;
-    position: sticky;
-    top: 117px;
+    white-space: nowrap;
   }
   td {
-    padding: 10px 12px;
+    padding: 12px 16px;
     border-bottom: 1px solid $border;
     color: #d9d9d9;
     vertical-align: middle;
   }
 
+  td.actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    white-space: nowrap;
+  }
+
   tr:hover td { background: rgba(255,255,255,0.02); }
   tr.blocked-row td { opacity: 0.6; }
-  tr.deleted-row td { opacity: 0.45; }
-  tr.reported-row { background: rgba($red, 0.04); }
 }
 
+// ── User cell ────────────────────────────────────────────────────
 .user-cell {
   display: flex;
   align-items: center;
   gap: 10px;
-  .mini-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+  min-width: 140px;
+
+  .mini-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%; object-fit: cover;
+    background: #15202b;
+    flex-shrink: 0;
+  }
 }
 
 .user-link { color: white; text-decoration: none; font-weight: 600; &:hover { text-decoration: underline; } }
@@ -319,23 +333,40 @@ $orange: #f59e0b;
   &.badge-blocked { background: rgba($red, 0.15); color: $red; }
 }
 
-.actions-cell { white-space: nowrap; }
+.actions-cell {
+  white-space: nowrap;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 
 .btn-action {
   font-size: 0.78rem;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border-radius: 50px;
   border: 1px solid $border;
   cursor: pointer;
   font-weight: 600;
   background: transparent;
   color: white;
-  margin-right: 4px;
   transition: all 0.15s;
 
-  &.btn-block { border-color: $red; color: $red; &:hover { background: rgba($red, 0.12); } }
-  &.btn-unblock { border-color: $green; color: $green; &:hover { background: rgba($green, 0.12); } }
-  &.btn-role { border-color: $blue; color: $blue; &:hover { background: rgba($blue, 0.12); } }
+  &.btn-block {
+    border-color: $red;
+    color: $red;
+    &:hover { background: rgba($red, 0.12); }
+  }
+  &.btn-unblock {
+    border-color: $green;
+    color: $green;
+    &:hover { background: rgba($green, 0.12); }
+  }
+  &.btn-role {
+    border-color: $blue;
+    color: $blue;
+    &:hover { background: rgba($blue, 0.12); }
+  }
 }
 
 // ── Audit log ─────────────────────────────────────────────────────────────────

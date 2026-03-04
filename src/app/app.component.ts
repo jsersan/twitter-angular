@@ -8,12 +8,13 @@ import { filter } from 'rxjs/operators';
     <div class="app-container" [class.auth-layout]="isAuthPage">
       <app-navbar *ngIf="!isAuthPage"></app-navbar>
 
-      <div class="content-area" [class.no-sidebar]="!showSidebar" *ngIf="!isAuthPage">
+      <!-- DESPUÉS -->
+     <div class="content-area" [class.no-sidebar]="!showSidebar" [class.admin-layout]="isAdminPage" *ngIf="!isAuthPage">
         <main class="main-content">
           <router-outlet></router-outlet>
         </main>
         <!-- Tercera columna solo en páginas principales -->
-        <app-right-sidebar *ngIf="showSidebar" class="sidebar-col"></app-right-sidebar>
+        <app-right-sidebar *ngIf="showSidebar && !isAdminPage" class="sidebar-col"></app-right-sidebar>
       </div>
 
       <!-- Auth pages sin sidebar -->
@@ -56,6 +57,12 @@ import { filter } from 'rxjs/operators';
       min-height: 100vh;
     }
 
+    .admin-layout .main-content {
+  flex: 1;
+  max-width: 100%;
+  width: 100%;
+}
+
     .auth-main {
       flex: 1;
       margin-left: 0;
@@ -82,6 +89,7 @@ import { filter } from 'rxjs/operators';
   `]
 })
 export class AppComponent implements OnInit {
+  isAdminPage = false;  // ← AÑADIR junto a las otras propiedades
   isAuthPage = false;
   showSidebar = false;
 
@@ -95,7 +103,8 @@ export class AppComponent implements OnInit {
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
       this.isAuthPage = ['/login', '/register'].some(p => e.url.startsWith(p));
+      this.isAdminPage = e.url.startsWith('/admin');  // ← AÑADIR
       this.showSidebar = this.sidebarRoutes.some(p => e.url.startsWith(p));
     });
   }
-}
+}  

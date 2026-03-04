@@ -51,17 +51,21 @@ export class ImageUploadService {
     return this.uploadImage(file, `tweets/${uid}/${timestamp}.${ext}`);
   }
 
-  // ─── Validar imagen ───────────────────────────────────────────────────────
-  validateImage(file: File): string | null {
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic'];
-    if (!allowed.includes(file.type)) {
-      return 'Solo se permiten imágenes (JPG, PNG, GIF, WEBP)';
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      return 'La imagen no puede superar los 5 MB';
-    }
-    return null;
+// ─── Validar imagen O video ───────────────────────────────────────────────
+validateImage(file: File): string | null {
+  const allowedImages = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic'];
+  const allowedVideos = ['video/mp4', 'video/webm', 'video/quicktime'];
+  const allowed = [...allowedImages, ...allowedVideos];
+
+  if (!allowed.includes(file.type)) {
+    return 'Solo se permiten imágenes (JPG, PNG, GIF) o videos (MP4, WebM, MOV)';
   }
+  const maxSize = file.type.startsWith('video/') ? 10 : 5;
+  if (file.size > maxSize * 1024 * 1024) {
+    return `El archivo no puede superar los ${maxSize} MB`;
+  }
+  return null;
+}
 
   // ─── Eliminar imagen por URL ──────────────────────────────────────────────
   async deleteByUrl(url: string): Promise<void> {

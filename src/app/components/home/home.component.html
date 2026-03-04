@@ -21,10 +21,10 @@
 
         <!-- Preview imagen seleccionada -->
         <div class="image-preview" *ngIf="previewUrl">
-          <img [src]="previewUrl" alt="Preview" />
+          <video *ngIf="isVideo" [src]="previewUrl" controls style="max-width:100%; border-radius:12px;"></video>
+          <img *ngIf="!isVideo" [src]="previewUrl" alt="Preview" />
           <button class="remove-img" (click)="removeImage()" title="Quitar imagen">✕</button>
         </div>
-
         <!-- Barra de progreso -->
         <div class="upload-bar" *ngIf="uploading">
           <div class="upload-fill" [style.width.%]="uploadProgress"></div>
@@ -37,11 +37,12 @@
             📷
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/mp4,video/webm,video/quicktime"
               (change)="onFileSelected($event)"
               [disabled]="uploading"
               style="display:none" />
           </label>
+          <span class="upload-hint">Imágenes hasta 5MB · Videos MP4 hasta 10MB</span>
 
           <span class="char-counter"
             [class.warning]="charCount > 240"

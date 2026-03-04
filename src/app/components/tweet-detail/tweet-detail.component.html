@@ -1,0 +1,55 @@
+<div class="thread-page">
+
+    <div class="thread-header">
+      <button class="btn-back" (click)="goBack()">← Post</button>
+    </div>
+  
+    <div class="loading-row" *ngIf="loading">
+      <div class="spinner"></div>
+    </div>
+  
+    <!-- Tweet principal -->
+    <div class="main-tweet" *ngIf="tweet && !loading">
+      <app-tweet-card
+        [tweet]="tweet"
+        (deleted)="onTweetDeleted()">
+      </app-tweet-card>
+    </div>
+  
+    <!-- Caja de respuesta -->
+    <div class="reply-box" *ngIf="currentUser && tweet && !loading">
+      <img [src]="currentUser.avatarUrl || 'assets/default-avatar.png'"
+           class="reply-avatar" />
+      <div class="reply-input-area">
+        <textarea
+          [(ngModel)]="replyText"
+          placeholder="Postea tu respuesta"
+          rows="2"
+          maxlength="280">
+        </textarea>
+        <div class="reply-actions">
+          <span class="char-count" [class.warn]="replyText.length > 240">
+            {{ 280 - replyText.length }}
+          </span>
+          <button class="btn-reply"
+            [disabled]="!replyText.trim() || posting"
+            (click)="postReply()">
+            {{ posting ? '...' : 'Responder' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Respuestas -->
+    <div class="replies-section" *ngIf="!loading">
+      <div class="empty-replies" *ngIf="replies.length === 0">
+        <p>No hay respuestas aún</p>
+      </div>
+      <app-tweet-card
+        *ngFor="let reply of replies"
+        [tweet]="reply"
+        (deleted)="onReplyDeleted($event)">
+      </app-tweet-card>
+    </div>
+  
+  </div>

@@ -10,6 +10,7 @@ import { NotificationsComponent } from './components/notifications/notifications
 import { FollowersComponent } from './components/followers/followers.component';
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
+import { TweetDetailComponent } from './components/tweet-detail/tweet-detail.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -21,6 +22,7 @@ const routes: Routes = [
   { path: 'followers', component: FollowersComponent, canActivate: [AuthGuard] },
   { path: 'profile/:username', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'admin', component: AdminComponent, canActivate: [AuthGuard, AdminGuard] },
+  { path: 'tweet/:id', component: TweetDetailComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: 'home' }
 ];
 

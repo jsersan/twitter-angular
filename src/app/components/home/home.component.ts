@@ -20,6 +20,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   posting = false;
   charCount = 0;
   maxChars = 280;
+  isVideo = false;  // ← añadir junto a las otras propiedades
   replyingTo: Tweet | null = null;
 
   selectedFile: File | null = null;
@@ -39,7 +40,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.userSub = this.authService.currentUser$.subscribe(user => {
+    this.userSub = this.authService.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
       if (user) {
         this.timelineSub?.unsubscribe();
@@ -50,13 +51,14 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+    // this.tweetService.migrateReplyCounts();
   }
 
   loadTimeline(user: User): void {
     this.loading = true;
     this.timelineSub = this.tweetService.getTimeline(user.following, user.uid).subscribe({
-      next: tweets => { this.tweets = tweets; this.loading = false; },
-      error: err => { if (err?.code !== 'permission-denied') console.error(err); this.loading = false; }
+      next: (tweets: Tweet[]) => { this.tweets = tweets; this.loading = false; },
+      error: (err: { code: string; }) => { if (err?.code !== 'permission-denied') console.error(err); this.loading = false; }
     });
   }
 
@@ -69,6 +71,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     const error = this.imageUpload.validateImage(file);
     if (error) { this.toast.error(error); return; }
     this.selectedFile = file;
+    this.isVideo = file.type.startsWith('video/');  // ← añadir esta línea
     const reader = new FileReader();
     reader.onload = e => this.previewUrl = e.target?.result as string;
     reader.readAsDataURL(file);
@@ -78,6 +81,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.selectedFile = null;
     this.previewUrl = null;
     this.uploadProgress = 0;
+    this.isVideo = false;  // ← añadir
   }
 
   async postTweet(): Promise<void> {
@@ -92,7 +96,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.uploading = true;
         imageUrl = await new Promise<string>((resolve, reject) => {
           this.imageUpload.uploadTweetImage(this.currentUser!.uid, this.selectedFile!).subscribe({
-            next: p => {
+            next: (p) => {
               this.uploadProgress = p.progress;
               if (p.url) resolve(p.url);
               if (p.error) reject(new Error(p.error));
@@ -109,10 +113,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         displayName: this.currentUser.displayName,
         avatarUrl: this.currentUser.avatarUrl,
         content: this.tweetContent.trim(),
-        imageUrl,
+        imageUrl: imageUrl ?? null,              // ← cambiar esto
         likes: [],
         reposts: [],
-        replyTo: this.replyingTo?.id,
+        replyTo: this.replyingTo?.id ?? null,   // ← y esto
         deleted: false
       });
 
@@ -135,6 +139,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.replyingTo = null;
       this.removeImage();
     } catch (e: any) {
+      console.error('❌ ERROR COMPLETO:', e);
+      console.error('❌ Código:', e?.code);
+      console.error('❌ Mensaje:', e?.message);
       this.toast.error('Error al publicar el tweet');
       this.uploading = false;
     } finally {

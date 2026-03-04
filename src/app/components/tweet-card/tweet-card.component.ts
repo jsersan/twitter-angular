@@ -1,8 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { Tweet, User } from '../../models/models';
+import { Tweet, User, ReportReason } from '../../models/models';
 import { TweetService } from '../../services/tweet.service';
 import { AuthService } from '../../services/auth.service';
+import { ToastService } from '../../services/toast.service';
+import { ReportService } from '../../services/report.service';
 
 @Component({
   selector: 'app-tweet-card',
@@ -16,6 +18,7 @@ export class TweetCardComponent implements OnInit {
   @Output() reply = new EventEmitter<Tweet>();
 
   currentUser: User | null = null;
+  showReportMenu = false;
   isLiked = false;
   isReposted = false;
   reposting = false;
@@ -24,11 +27,13 @@ export class TweetCardComponent implements OnInit {
   constructor(
     private tweetService: TweetService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private toast: ToastService,  
+    private reportService: ReportService
   ) {}
 
   ngOnInit(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
       if (user) {
         // Para el like: usa el tweet original si es repost
@@ -40,6 +45,29 @@ export class TweetCardComponent implements OnInit {
           : (this.tweet.reposts?.includes(user.uid) || false);
       }
     });
+  }
+
+  async reportTweet(reason: ReportReason): Promise<void> {
+    if (!this.currentUser) return;
+    this.showReportMenu = false;
+    const tweetId = this.tweet.isRepost ? this.tweet.originalTweetId! : this.tweet.id!;
+    const tweetUsername = this.tweet.isRepost ? this.tweet.originalUsername! : this.tweet.username;
+    const tweetContent = this.tweet.isRepost ? this.tweet.originalContent! : this.tweet.content;
+  
+    try {
+      await this.reportService.createReport({
+        tweetId,
+        tweetUsername,
+        tweetContent,
+        reportedBy: this.currentUser.uid,        // ← era reportedByUid
+        reportedByUsername: this.currentUser.username,
+        reason
+      });
+      this.toast.success('Reporte enviado ✅');
+    } catch (e) {
+      console.error('Error reporte:', e);  // ← añadir aquí
+      this.toast.error('Error al enviar el reporte');
+    }
   }
 
   // Construye un objeto Tweet con los datos del original (para likes en reposts)
@@ -82,23 +110,40 @@ export class TweetCardComponent implements OnInit {
       if (this.isReposted) {
         await this.tweetService.undoRepost(this.tweet.id!, this.currentUser.uid);
         this.isReposted = false;
+        this.toast.info('Repost deshecho');        // ← AÑADIR
       } else {
         await this.tweetService.repostTweet(this.tweet, this.currentUser);
         this.isReposted = true;
+        this.toast.success('¡Repost realizado! 🔁'); // ← AÑADIR
       }
     } finally {
       this.reposting = false;
     }
   }
 
-  async deleteThisThread(): Promise<void> {
-    if (!confirm('¿Eliminar este hilo completo?')) return;
-    if (this.isAdmin && this.currentUser) {
-      await this.tweetService.deleteThread(this.tweet.id!, this.currentUser.uid);
-    } else if (this.currentUser?.uid === this.tweet.userId) {
-      await this.tweetService.deleteTweet(this.tweet.id!, this.currentUser.uid);
-    }
-    this.deleted.emit(this.tweet.id);
+  goToDetail(): void {
+    const id = this.tweet.isRepost ? this.tweet.originalTweetId : this.tweet.id;
+    this.router.navigate(['/tweet', id]);
+  }
+
+  isVideoUrl(url?: string | null): boolean {
+    if (!url) return false;
+    return url.includes('.mp4') || url.includes('.webm') || url.includes('.mov') 
+      || url.includes('video%2F') || url.includes('video/');
+  }
+
+  deleteThisThread(): void {
+    this.toast.confirm(
+      '🗑️ ¿Eliminar este hilo completo?',
+      async () => {
+        if (this.isAdmin && this.currentUser) {
+          await this.tweetService.deleteThread(this.tweet.id!, this.currentUser.uid);
+        } else if (this.currentUser?.uid === this.tweet.userId) {
+          await this.tweetService.deleteTweet(this.tweet.id!, this.currentUser.uid);
+        }
+        this.deleted.emit(this.tweet.id);
+      }
+    );
   }
 
   goToProfile(username?: string): void {

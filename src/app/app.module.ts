@@ -33,6 +33,8 @@ import { ReportService } from './services/report.service';
 import { ImageUploadService } from './services/image-upload.service';
 import { NotificationService } from './services/notification.service';
 
+import { TweetDetailComponent } from './components/tweet-detail/tweet-detail.component';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -48,7 +50,8 @@ import { NotificationService } from './services/notification.service';
     NotificationsComponent,
     RightSidebarComponent,
     FollowersComponent,
-    TimeAgoPipe
+    TimeAgoPipe,
+    TweetDetailComponent
   ],
   imports: [
     BrowserModule,

@@ -127,6 +127,55 @@ $red: #e0245e;
         }
       }
     }
+
+    .btn-report-wrap {
+      position: relative;
+      margin-left: auto;
+    
+      .btn-report {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        opacity: 0.3;          // ← visible siempre, no 0
+        transition: opacity 0.15s;
+        padding: 4px;
+        &:hover { opacity: 1; }  // ← hover directo
+      }
+    
+      .report-menu {
+        position: absolute;
+        right: 0;
+        top: 28px;
+        background: #1e2732;
+        border: 1px solid #38444d;
+        border-radius: 12px;
+        padding: 8px 0;
+        z-index: 100;
+        min-width: 220px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    
+        .report-title {
+          padding: 6px 16px;
+          color: #8899a6;
+          font-size: 0.8rem;
+          margin: 0;
+        }
+    
+        button {
+          display: block;
+          width: 100%;
+          background: none;
+          border: none;
+          color: #d9d9d9;
+          padding: 10px 16px;
+          text-align: left;
+          cursor: pointer;
+          font-size: 0.9rem;
+          &:hover { background: rgba(255,255,255,0.05); }
+        }
+      }
+    }
   }
 }
 

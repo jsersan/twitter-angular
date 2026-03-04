@@ -139,16 +139,18 @@
           </td>
           <td>{{ user.tweetsCount || 0 }}</td>
           <td>{{ user.followersCount || 0 }}</td>
-          <td class="actions-cell">
-            <button *ngIf="user.uid !== currentUser?.uid" class="btn-action"
-              [class.btn-unblock]="user.blocked" [class.btn-block]="!user.blocked"
-              (click)="toggleBlock(user)">
-              {{ user.blocked ? 'Desbloquear' : 'Bloquear' }}
-            </button>
-            <button *ngIf="user.uid !== currentUser?.uid" class="btn-action btn-role"
-              (click)="toggleAdmin(user)">
-              {{ user.role === 'admin' ? '→ User' : '→ Admin' }}
-            </button>
+          <td>
+            <div class="actions-cell">
+              <button *ngIf="user.uid !== currentUser?.uid" class="btn-action"
+                [class.btn-unblock]="user.blocked" [class.btn-block]="!user.blocked"
+                (click)="toggleBlock(user)">
+                {{ user.blocked ? 'Desbloquear' : 'Bloquear' }}
+              </button>
+              <button *ngIf="user.uid !== currentUser?.uid" class="btn-action btn-role"
+                (click)="toggleAdmin(user)">
+                {{ user.role === 'admin' ? '→ User' : '→ Admin' }}
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

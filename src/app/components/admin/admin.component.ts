@@ -15,6 +15,7 @@ type AdminTab = 'users' | 'tweets' | 'reports' | 'log';
 })
 export class AdminComponent implements OnInit, OnDestroy {
   activeTab: AdminTab = 'reports';   // Empieza en reportes (más urgente)
+  isAdminPage = false; // ← añadir junto a isAuthPage
   users: User[] = [];
   tweets: Tweet[] = [];
   reports: Report[] = [];

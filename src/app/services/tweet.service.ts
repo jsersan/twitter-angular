@@ -14,19 +14,36 @@ export class TweetService {
   constructor(private firestore: Firestore) {}
 
   // ─── Timeline propio + seguidos ──────────────────────────────────────────────
-  getTimeline(followingIds: string[], currentUserId: string): Observable<Tweet[]> {
-    const ids = [...followingIds, currentUserId].slice(0, 10);
-    const tweetsRef = collection(this.firestore, 'tweets');
-    const q = query(
-      tweetsRef,
-      where('userId', 'in', ids),
-      where('deleted', '==', false),
-      where('replyTo', '==', null),
-      orderBy('createdAt', 'desc'),
-      limit(50)
-    );
-    return collectionData(q, { idField: 'id' }) as Observable<Tweet[]>;
-  }
+// DESPUÉS
+getTimeline(followingIds: string[], currentUserId: string): Observable<Tweet[]> {
+  const ids = [...followingIds, currentUserId].slice(0, 10);
+  const followingSet = new Set([...followingIds, currentUserId]); // ← AÑADIR
+  const tweetsRef = collection(this.firestore, 'tweets');
+  const q = query(
+    tweetsRef,
+    where('userId', 'in', ids),
+    where('deleted', '==', false),
+    orderBy('createdAt', 'desc'),
+    limit(80)
+  );
+  return (collectionData(q, { idField: 'id' }) as Observable<Tweet[]>).pipe(
+    map((tweets: any[]) => tweets
+      .filter(t => {
+        // Ocultar respuestas
+        if (t.replyTo) return false;
+        
+        // Ocultar mis propios reposts (ya veo el original)
+        if (t.isRepost && t.repostedByUserId === currentUserId) return false;
+        
+        // Ocultar reposts de alguien a quien sigo SI ya sigo al autor original
+        if (t.isRepost && followingSet.has(t.originalUserId!)) return false;
+        
+        return true;
+      })
+      .slice(0, 50)
+    )
+  );
+}
 
   // ─── Tweets de un usuario ────────────────────────────────────────────────────
   getUserTweets(userId: string): Observable<Tweet[]> {
@@ -76,15 +93,40 @@ export class TweetService {
     const tweetsRef = collection(this.firestore, 'tweets');
     const docRef = await addDoc(tweetsRef, {
       ...tweet,
-      replyTo: tweet.replyTo || null,
+      imageUrl: tweet.imageUrl ?? null,        // ← AÑADIR
+      replyTo: tweet.replyTo ?? null,          // ← AÑADIR 
       reposts: tweet.reposts || [],
       createdAt: serverTimestamp()
     });
+    // Si es una respuesta, incrementar contador del tweet padre
+if (tweet.replyTo) {
+  const parentRef = doc(this.firestore, 'tweets', tweet.replyTo);
+  const parentSnap = await getDoc(parentRef);
+  const current = (parentSnap.data() as any)?.replyCount || 0;
+  await updateDoc(parentRef, { replyCount: current + 1 });
+}
     // Incrementar contador sin bloquear (no lanza error si falla)
     this.incrementField('users', tweet.userId, 'tweetsCount').then(count =>
       updateDoc(doc(this.firestore, 'users', tweet.userId), { tweetsCount: count })
     ).catch(() => {});
     return docRef.id;
+  }
+
+  async migrateReplyCounts(): Promise<void> {
+    const tweetsRef = collection(this.firestore, 'tweets');
+    const snap = await getDocs(query(tweetsRef, where('deleted', '==', false)));
+    
+    for (const tweetDoc of snap.docs) {
+      const repliesSnap = await getDocs(
+        query(tweetsRef, where('replyTo', '==', tweetDoc.id), where('deleted', '==', false))
+      );
+      if (repliesSnap.size > 0) {
+        await updateDoc(doc(this.firestore, 'tweets', tweetDoc.id), {
+          replyCount: repliesSnap.size
+        });
+      }
+    }
+    console.log('Migración completada');
   }
 
   // ─── Like / Unlike ───────────────────────────────────────────────────────────
@@ -143,6 +185,11 @@ export class TweetService {
     await updateDoc(doc(this.firestore, 'tweets', originalTweetId), {
       reposts: arrayRemove(reposterUid)
     });
+  }
+
+  async getTweetById(tweetId: string): Promise<Tweet | null> {
+    const snap = await getDoc(doc(this.firestore, 'tweets', tweetId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } as Tweet : null;
   }
 
   // ─── Eliminar tweet (soft delete) ────────────────────────────────────────────

@@ -10,7 +10,7 @@
     <!-- Avatar del autor ORIGINAL -->
     <div class="tweet-avatar" (click)="goToProfile(tweet.isRepost ? tweet.originalUsername : tweet.username)">
       <img [src]="(tweet.isRepost ? tweet.originalAvatarUrl : tweet.avatarUrl) || 'assets/default-avatar.png'"
-           [alt]="tweet.isRepost ? tweet.originalDisplayName : tweet.displayName" />
+        [alt]="tweet.isRepost ? tweet.originalDisplayName : tweet.displayName" loading="lazy" />
     </div>
 
     <div class="tweet-body">
@@ -28,12 +28,33 @@
         <div class="tweet-actions-menu" *ngIf="canDelete()">
           <button class="btn-delete" (click)="deleteThisThread()" title="Eliminar">🗑️</button>
         </div>
+        
+        <!-- AÑADIR: botón reportar (solo si NO es el autor) -->
+        <div class="btn-report-wrap" *ngIf="!canDelete() && currentUser">
+          <button class="btn-report" (click)="showReportMenu = !showReportMenu" title="Reportar">🚩</button>
+          <div class="report-menu" *ngIf="showReportMenu">
+            <p class="report-title">¿Por qué reportas este tweet?</p>
+            <button (click)="reportTweet('spam')">🔁 Spam</button>
+            <button (click)="reportTweet('hate_speech')">😡 Discurso de odio</button>
+            <button (click)="reportTweet('harassment')">👊 Acoso</button>
+            <button (click)="reportTweet('misinformation')">❌ Desinformación</button>
+            <button (click)="reportTweet('inappropriate')">🔞 Contenido inapropiado</button>
+            <button (click)="reportTweet('other')">💬 Otro</button>
+          </div>
+        </div>
       </div>
 
-      <div class="tweet-content">
+      <div class="tweet-content" (click)="goToDetail()" style="cursor:pointer">
         <p>{{ tweet.isRepost ? tweet.originalContent : tweet.content }}</p>
+        <!-- Imagen del tweet -->
         <div class="tweet-image" *ngIf="tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl">
-          <img [src]="tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl" alt="imagen del tweet" />
+          <ng-container *ngIf="isVideoUrl(tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl)">
+            <video [src]="tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl" 
+                   controls style="max-width:100%; border-radius:12px; max-height:400px;"></video>
+          </ng-container>
+          <ng-container *ngIf="!isVideoUrl(tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl)">
+            <img [src]="tweet.isRepost ? tweet.originalImageUrl : tweet.imageUrl" alt="imagen del tweet" loading="lazy" />
+          </ng-container>
         </div>
       </div>
 
@@ -41,15 +62,14 @@
         <!-- Responder -->
         <button class="action-btn reply-btn" (click)="emitReply()" title="Responder">
           <span class="icon">💬</span>
+          <span class="count" *ngIf="tweet.replyCount && tweet.replyCount > 0">
+            {{ tweet.replyCount }}
+          </span>
         </button>
 
         <!-- Repostear (solo en tweets raíz, no en reposts de reposts) -->
-        <button
-          class="action-btn repost-btn"
-          [class.reposted]="isReposted"
-          [class.loading]="reposting"
-          (click)="toggleRepost()"
-          [disabled]="reposting || tweet.isRepost"
+        <button class="action-btn repost-btn" [class.reposted]="isReposted" [class.loading]="reposting"
+          (click)="toggleRepost()" [disabled]="reposting || tweet.isRepost"
           [title]="tweet.isRepost ? 'No se puede re-repostear' : (isReposted ? 'Deshacer repost' : 'Repostear')"
           *ngIf="!tweet.replyTo">
           <span class="icon" *ngIf="!reposting">🔁</span>

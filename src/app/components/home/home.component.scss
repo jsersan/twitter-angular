@@ -69,6 +69,12 @@
           }
         }
 
+        .upload-hint {
+          font-size: 0.75rem;
+          color: #6e767d;
+          align-self: center;
+        }
+
         // ── Barra de progreso ───────────────────────────────────────────────
         .upload-bar {
           background: #253341; border-radius: 50px; overflow: hidden;
